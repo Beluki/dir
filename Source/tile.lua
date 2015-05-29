@@ -8,8 +8,12 @@ function tile_new (color)
     local self = {}
 
     self.color = color
-    self.pulsing = false
+    self.activated = false
+
     self.appearing = true
+    self.disappearing = false
+    self.activating = false
+    self.moving = false
 
     return self
 end
@@ -24,6 +28,6 @@ end
 
 -- Determine if a tile is static (non-moving, non-appearing/dissapearing):
 function tile_is_static (self)
-    return not self.appearing
+    return (not self.appearing) and (not self.disappearing) and (not self.moving)
 end
 

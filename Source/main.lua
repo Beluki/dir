@@ -15,7 +15,7 @@ function love.load ()
     math.randomseed(os.time())
 
     grid_clear(grid)
-    grid_fill(grid, 30)
+    grid_fill(grid, 50)
 end
 
 -- Game logic update:
@@ -30,7 +30,10 @@ function love.draw ()
     grid_draw(grid)
 end
 
-function love.mousepressed ()
-    grid_add_random_tiles(grid, 5)
+function love.mousepressed (x, y, button)
+    if button == 'l' then
+        moving_reset(grid.moving, 3 * TILE_SIZE_BIG, MOVING_DIRECTIONS.DOWN)
+        moving_enable(grid.moving)
+    end
 end
 

@@ -3,8 +3,9 @@
 -- A simple, minimalistic puzzle game.
 
 
--- Tile size (pixels):
-TILE_SIZE = 50
+-- Tile sizes (pixels):
+TILE_SIZE_BIG = 75
+TILE_SIZE_SMALL = 40
 
 -- All the available tile colors to choose from:
 TILE_COLORS = {
@@ -23,7 +24,6 @@ TILE_COLORS = {
 TILE_COLORS_COUNT = #TILE_COLORS
 
 -- Background:
-BACKGROUND_TILE_SIZE = 25
 BACKGROUND_TILE_COLOR = { 240, 240, 240 }
 
 -- Grid size (tiles):
@@ -32,8 +32,16 @@ GRID_TILE_HEIGHT = 7
 
 -- Grid drawing position/size (pixels):
 GRID_X = 0
-GRID_Y = TILE_SIZE
+GRID_Y = TILE_SIZE_BIG
 
-GRID_WIDTH = GRID_TILE_WIDTH * TILE_SIZE
-GRID_HEIGHT = GRID_TILE_HEIGHT * TILE_SIZE
+GRID_WIDTH = GRID_TILE_WIDTH * TILE_SIZE_BIG
+GRID_HEIGHT = GRID_TILE_HEIGHT * TILE_SIZE_BIG
+
+-- Constant move coordinates:
+MOVING_DIRECTIONS = {
+    UP    = { X =  0, Y = -1 },
+    RIGHT = { X =  1, Y =  0 },
+    DOWN  = { X =  0, Y =  1 },
+    LEFT  = { X = -1, Y =  0 },
+}
 
