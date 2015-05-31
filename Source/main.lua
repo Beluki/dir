@@ -3,35 +3,20 @@
 -- A simple, minimalistic puzzle game.
 
 
-require 'constant'
-require 'grid'
-require 'tile'
+require 'game'
 
 
-grid = grid_new()
+game = nil
 
--- Game initialization:
+-- Initialization:
 function love.load ()
     math.randomseed(os.time())
 
-    grid.clear()
-end
+    game = game_new()
 
--- Game logic update:
-function love.update (dt)
-    grid.update(dt)
-end
-
--- Game frame:
-function love.draw ()
-    love.graphics.setBackgroundColor({ 255, 255, 255 })
-
-    grid.draw(grid)
-end
-
-function love.mousepressed (x, y, button)
-    if button == 'l' then
-        grid.add_random_tiles(5)
-    end
+    -- attach our callbacks:
+    love.update = game.update
+    love.draw = game.draw
+    love.mousepressed = game.mousepressed
 end
 

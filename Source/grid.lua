@@ -4,6 +4,7 @@
 
 
 require 'constant'
+require 'tile'
 require 'util'
 
 
@@ -51,11 +52,11 @@ function appearing_new ()
 
         if self.size == self.grow_max then
             self.alpha = self.alpha_max
-            self.state = 'shrink'
+            self.state = 'shrinking'
         end
     end
 
-    -- update the animation when shrinking:
+   -- update the animation when shrinking:
     self.update_shrinking = function (dt)
         self.size = math.max(self.size + (self.shrink_speed * dt), self.shrink_min)
 
@@ -77,7 +78,7 @@ function appearing_new ()
 
     -- get drawing values for a tile using this animation:
     self.draw_tile_options = function (tile, options)
-        if tile.appearing then
+        if tile.animated then
             options.alpha = self.alpha
             options.size = (self.size * TILE_SIZE_SMALL) / 100
 
@@ -266,10 +267,10 @@ function moving_new (self)
     self.update = function (dt)
         if self.enabled then
             if self.moved < self.distance then
-                local distance_x = self.direction.X * (self.speed * dt)
-                local distance_y = self.direction.Y * (self.speed * dt)
+                local distance_x = math.abs(self.direction.X * (self.speed * dt))
+                local distance_y = math.abs(self.direction.Y * (self.speed * dt))
 
-                self.moved = math.min(self.moved +  distance_x + distance_y, self.distance)
+                self.moved = math.min(self.moved + distance_x + distance_y, self.distance)
             else
                 self.enabled = false
             end
@@ -278,7 +279,7 @@ function moving_new (self)
 
     -- get drawing values for a tile using this animation:
     self.draw_tile_options = function (tile, options)
-        if tile.moving then
+        if tile.animated then
             options.alpha = 255
             options.size = TILE_SIZE_SMALL
 
@@ -309,19 +310,25 @@ end
 -- Grid:
 
 -- Constructor:
-function grid_new ()
+function grid_new()
     local self = {}
 
+    -- variables:
     self.tiles = {}
+    self.tiles_animation = nil
 
     self.appearing = appearing_new()
     self.disappearing = disappearing_new()
     self.activating = activating_new()
     self.moving = moving_new()
 
-    self.animation = nil
-
     -- methods:
+    -- tiles array manipulation:
+
+    -- determine if a (x, y) coordinate is inside the grid:
+    self.valid_tile_position = function (x, y)
+        return (x >= 1) and (y >= 1) and (x <= GRID_TILE_WIDTH) and (y <= GRID_TILE_HEIGHT)
+    end
 
     -- set all the tiles in the grid to the nil value:
     self.clear = function ()
@@ -334,13 +341,13 @@ function grid_new ()
         end
     end
 
-    -- count the number of nil tiles in the grid:
-    self.count_nil = function ()
+    -- count the number of tiles in the grid matching a function:
+    self.count = function (test)
         local total = 0
 
         for x = 1, GRID_TILE_WIDTH do
             for y = 1, GRID_TILE_HEIGHT do
-                if self.tiles[x][y] == nil then
+                if test(self.tiles[x][y]) then
                     total = total + 1
                 end
             end
@@ -349,11 +356,46 @@ function grid_new ()
         return total
     end
 
-    -- get the (x, y) coordinates for the nth nil tile in the grid:
-    self.nth_nil = function (nth)
+    -- count the number of nil tiles in the grid:
+    self.count_nil = function ()
+        local test = function (tile)
+            return tile == nil
+        end
+
+        return self.count(test)
+    end
+
+    -- count the number of nil tiles in a given direction
+    -- from a starting position:
+    self.count_nil_direction = function (x, y, direction)
+        local count = 0
+
+        while true do
+            x = x + direction.X
+            y = y + direction.Y
+
+            if not self.valid_tile_position(x, y) or self.tiles[x][y] ~= nil then
+                return count
+            end
+
+            count = count + 1
+        end
+    end
+
+    -- count the number of non-nil tiles in the grid:
+    self.count_not_nil = function ()
+        local test = function (tile)
+            return tile ~= nil
+        end
+
+        return self.count(test)
+    end
+
+    -- get the (x, y) coordinates for the nth tile matching a function:
+    self.nth = function (nth, test)
         for x = 1, GRID_TILE_WIDTH do
             for y = 1, GRID_TILE_HEIGHT do
-                if self.tiles[x][y] == nil then
+                if test(self.tiles[x][y]) then
                     nth = nth - 1
 
                     if nth == 0 then
@@ -364,8 +406,18 @@ function grid_new ()
         end
     end
 
-    -- add a random colored tile in a random position in the grid:
-    self.add_random_tile = function ()
+    -- get the (x, y) coordinates for the nth nil tile in the grid:
+    self.nth_nil = function (nth)
+        local test = function (cell)
+            return cell == nil
+        end
+
+        return self.nth(nth, test)
+    end
+
+    -- add a random colored tile in a random position in the grid
+    -- using a set of possible colors:
+    self.add_random_tile = function (colors)
         local total_nil = self.count_nil()
 
         -- no free positions available:
@@ -373,35 +425,82 @@ function grid_new ()
             return nil
         end
 
-        self.animation = self.appearing
-        self.appearing.reset()
-        self.appearing.enable()
-
         local position = math.random(total_nil)
         local x, y = self.nth_nil(position)
 
-        self.tiles[x][y] = tile_new_random(TILE_COLORS)
+        local tile = tile_new_random(colors)
+
+        self.tiles_animation = self.appearing
+        self.tiles_animation.enable()
+        tile.animated = true
+
+        self.tiles[x][y] = tile
     end
 
     -- add N random tiles:
-    self.add_random_tiles = function (count)
+    self.add_random_tiles = function (count, colors)
         for i = 1, count do
-            self.add_random_tile()
+            self.add_random_tile(colors)
         end
     end
 
     -- add random tiles to the grid until a certain percentage is filled:
-    -- (does nothing if this percentage is already satisfied)
-    self.add_random_filling = function (percentage)
+    self.add_random_tiles_filling = function (percentage, colors)
         local total = GRID_TILE_WIDTH * GRID_TILE_HEIGHT
 
         local used = total - self.count_nil()
         local required = percentage * (total / 100)
 
-        for count = used, required do
-            self.add_random_tile()
+        while used < required do
+            self.add_random_tile(colors)
+            used = used + 1
         end
     end
+
+    -- methods:
+    -- animation handling:
+
+    self.moving_done = function ()
+        local distance_x = self.moving.direction.X * (self.moving.distance / TILE_SIZE_BIG)
+        local distance_y = self.moving.direction.Y * (self.moving.distance / TILE_SIZE_BIG)
+
+        -- reset tiles and change their position
+        -- to the new value:
+
+        for y = 1, GRID_TILE_HEIGHT do
+            for x = 1, GRID_TILE_WIDTH do
+                local tile = self.tiles[x][y]
+
+                if tile ~= nil and tile.animated then
+                    self.tiles[x][y] = nil
+                    self.tiles[x + distance_x][y + distance_y] = tile
+                    tile.animated = false
+                end
+            end
+        end
+    end
+
+    -- reset animation settings after using it:
+    self.animation_done = function ()
+        if self.tiles_animation == self.moving then
+            self.moving_done()
+        else
+            for y = 1, GRID_TILE_HEIGHT do
+                for x = 1, GRID_TILE_WIDTH do
+                    local tile = self.tiles[x][y]
+
+                    if tile ~= nil and tile.animated then
+                        tile.animated = false
+                    end
+                end
+            end
+        end
+
+        self.tiles_animation = nil
+    end
+
+    -- methods:
+    -- drawing and updating:
 
     -- draw the background squares:
     self.draw_background = function ()
@@ -417,8 +516,9 @@ function grid_new ()
         end
     end
 
-    -- draw tiles, use fn(tile, options) to determine the alpha/size/offset...:
-    self.draw_tiles_fn = function (fn)
+    -- draw tiles
+    -- use fn(tile, options) to determine the alpha/size/offset:
+    self.draw_tiles = function (fn)
         local offset = (TILE_SIZE_BIG - TILE_SIZE_SMALL) / 2
         local options = {}
 
@@ -447,55 +547,80 @@ function grid_new ()
         end
     end
 
-    -- determine options used to draw a static tile:
-    self.draw_static_tiles_fn = function (tile, options)
-        return tile.is_static()
+    -- options used to draw a static tile:
+    self.draw_static_tiles_options = function (tile, options)
+        return not tile.animated
     end
 
     -- draw the grid:
     self.draw = function ()
         self.draw_background()
-        self.draw_tiles_fn(self.draw_static_tiles_fn)
+        self.draw_tiles(self.draw_static_tiles_options)
 
-        if self.animation ~= nil then
-            self.draw_tiles_fn(self.animation.draw_tile_options)
+        if self.tiles_animation then
+            self.draw_tiles(self.tiles_animation.draw_tile_options)
         end
     end
 
     -- update the grid logic:
     self.update = function (dt)
+        if self.tiles_animation then
+            self.tiles_animation.update(dt)
 
-        -- update animation state:
-        if self.animation ~= nil then
-            self.animation.update(dt)
-        end
-
-        -- update tiles state:
-        for y = 1, GRID_TILE_HEIGHT do
-            for x = 1, GRID_TILE_WIDTH do
-                local tile = self.tiles[x][y]
-
-                if tile ~= nil then
-                    if not self.appearing.enabled then
-                        tile.appearing = false
-                    end
-                    if not self.disappearing.enabled then
-                        if tile.disappearing then
-                            self.tiles[x][y] = nil
-                        end
-                    end
-
-                    if not self.activating.enabled then
-                        if tile.activating then
-                            tile.activating = false
-                            tile.activated = true
-                        end
-                    end
-                end
+            if not self.tiles_animation.enabled then
+                self.animation_done()
             end
         end
     end
 
+    -- methods:
+    -- input:
+
+    -- get the (x, y) coordinates for the tile under the mouse cursor:
+    self.mouse_tile_position = function (mouse_x, mouse_y)
+        local x = math.floor((mouse_x - GRID_X) / TILE_SIZE_BIG) + 1
+        local y = math.floor((mouse_y - GRID_Y) / TILE_SIZE_BIG) + 1
+
+        return x, y, self.tiles[x][y]
+    end
+
+    -- handle input:
+    self.mousepressed = function (mouse_x, mouse_y, button)
+        -- no move during animations:
+        if self.tiles_animation then
+            return
+        end
+
+        local direction = MOUSE_DIRECTIONS[button]
+
+        -- unknown direction:
+        if direction == nil then
+            return
+        end
+
+        local x, y = self.mouse_tile_position(mouse_x, mouse_y)
+        local tile = self.tiles[x][y]
+
+        -- no tile or not movable:
+        if tile == nil or tile.active then
+            return
+        end
+
+        local distance = self.count_nil_direction(x, y, direction) * TILE_SIZE_BIG
+
+        -- can't move 0 pixels:
+        if distance == 0 then
+            return
+        end
+
+        self.tiles_animation = self.moving
+        self.tiles_animation.reset(distance, direction)
+        self.tiles_animation.enable()
+
+        tile.animated = true
+    end
+
+    self.clear()
     return self
 end
 

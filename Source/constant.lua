@@ -7,7 +7,7 @@
 TILE_SIZE_BIG = 75
 TILE_SIZE_SMALL = 40
 
--- All the available tile colors to choose from:
+-- All the available tile colors:
 TILE_COLORS = {
     { R = 255, G =  50, B =  50 }, -- red
     { R =  35, G = 217, B =  82 }, -- green
@@ -37,11 +37,19 @@ GRID_Y = TILE_SIZE_BIG
 GRID_WIDTH = GRID_TILE_WIDTH * TILE_SIZE_BIG
 GRID_HEIGHT = GRID_TILE_HEIGHT * TILE_SIZE_BIG
 
--- Constant move coordinates:
-MOVING_DIRECTIONS = {
+-- Movement coordinates:
+DIRECTIONS = {
     UP    = { X =  0, Y = -1 },
     RIGHT = { X =  1, Y =  0 },
     DOWN  = { X =  0, Y =  1 },
     LEFT  = { X = -1, Y =  0 },
 }
+
+MOUSE_DIRECTIONS = {
+    ['wu'] = { X =  0, Y = -1 },
+    ['r']  = { X =  1, Y =  0 },
+    ['wd'] = { X =  0, Y =  1 },
+    ['l']  = { X = -1, Y =  0 },
+}
+
 
