@@ -1,2 +1,5 @@
-# Meve
-A simple, minimalistic puzzle game.
+
+## About
+
+Work in progress.
+
