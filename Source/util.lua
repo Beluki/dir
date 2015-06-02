@@ -1,5 +1,5 @@
 
--- Meve.
+-- dir.
 -- A simple, minimalistic puzzle game.
 
 
@@ -8,7 +8,6 @@ function draw_square (x, y, size, color)
     love.graphics.setColor(color)
     love.graphics.rectangle("fill", x, y, size, size)
 end
-
 
 -- Clamp a value between min/max (inclusive):
 function clamp (value, min, max)
@@ -26,8 +25,8 @@ end
 -- Determine if a point is inside a rectangle:
 function point_inside_rect (x, y, rect_x, rect_y, rect_width, rect_height)
     return (x >= rect_x)
-       and (y <= rect_y + rect_height)
        and (y >= rect_y)
-       and (x <= (rect_x + rect_width))
+       and (y <= rect_y + rect_height)
+       and (x <= rect_x + rect_width)
 end
 

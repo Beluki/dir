@@ -1,18 +1,16 @@
 
--- Meve.
+-- dir.
 -- A simple, minimalistic puzzle game.
 
 
 require 'game'
 
 
-game = nil
-
 -- Initialization:
 function love.load ()
     math.randomseed(os.time())
 
-    game = game_new()
+    game = Game()
 
     -- attach our callbacks:
     love.update = game.update

@@ -1,11 +1,12 @@
 
--- Meve.
+-- dir.
 -- A simple, minimalistic puzzle game.
 
 
 -- Tile sizes (pixels):
 TILE_SIZE_BIG = 75
 TILE_SIZE_SMALL = 40
+TILE_SIZE_GROWTH = (TILE_SIZE_BIG * 100) / TILE_SIZE_SMALL
 
 -- All the available tile colors:
 TILE_COLORS = {
@@ -20,17 +21,17 @@ TILE_COLORS = {
     { R = 255, G =   0, B = 110 }, -- pink
 }
 
--- Tile colors count:
+-- Total tile colors:
 TILE_COLORS_COUNT = #TILE_COLORS
 
--- Background:
+-- Background small tiles color:
 BACKGROUND_TILE_COLOR = { 240, 240, 240 }
 
 -- Grid size (tiles):
 GRID_TILE_WIDTH = 7
 GRID_TILE_HEIGHT = 7
 
--- Grid drawing position/size (pixels):
+-- Grid drawing position and size (pixels):
 GRID_X = 0
 GRID_Y = TILE_SIZE_BIG
 
@@ -45,11 +46,11 @@ DIRECTIONS = {
     LEFT  = { X = -1, Y =  0 },
 }
 
+-- Mouse button -> direction:
 MOUSE_DIRECTIONS = {
-    ['wu'] = { X =  0, Y = -1 },
-    ['r']  = { X =  1, Y =  0 },
-    ['wd'] = { X =  0, Y =  1 },
-    ['l']  = { X = -1, Y =  0 },
+    ['wu'] = DIRECTIONS.UP,
+    ['r']  = DIRECTIONS.RIGHT,
+    ['wd'] = DIRECTIONS.DOWN,
+    ['l']  = DIRECTIONS.LEFT,
 }
-
 

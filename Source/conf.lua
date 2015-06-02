@@ -1,5 +1,5 @@
 
--- Meve.
+-- dir.
 -- A simple, minimalistic puzzle game.
 
 
@@ -8,7 +8,7 @@ function love.conf(t)
     t.version = "0.9.2"                -- Love version this game was made for (string)
     t.console = false                  -- Attach a console (boolean, Windows only)
 
-    t.window.title = "Meve"            -- The window title (string)
+    t.window.title = "dir"             -- The window title (string)
     t.window.icon = nil                -- Filepath to an image to use as the window's icon (string)
     t.window.width = 525               -- The window width (number)
     t.window.height = 600              -- The window height (number)
