@@ -10,7 +10,7 @@ require 'game'
 function love.load ()
     math.randomseed(os.time())
 
-    game = Game()
+    local game = Game()
 
     -- attach our callbacks:
     love.update = game.update

@@ -7,10 +7,14 @@
 function Tile (color)
     local self = {}
 
-    self.color = color
-    self.match = false
-    self.animated = false
+    -- initialization:
+    self.init = function (color)
+        self.color = color
+        self.big = false
+        self.animated = false
+    end
 
+    self.init(color)
     return self
 end
 
