@@ -72,6 +72,45 @@ function Array2d(width, height)
         return coroutine.wrap(iterator)
     end
 
+    -- iterate cells from a given starting
+    -- point in the four cardinal directions:
+    self.iter_directions = function (x, y)
+        local iterator = function ()
+            for name, coordinate in pairs(DIRECTIONS) do
+                local cell_x = x + coordinate.x
+                local cell_y = y + coordinate.y
+
+                if self.contains(cell_x, cell_y) then
+                    local cell = self.cells[cell_x][cell_y]
+                    coroutine.yield(x, y, cell)
+                end
+            end
+        end
+
+        return coroutine.wrap(iterator)
+    end
+
+    -- iterate not nil cells from a given starting
+    -- point in the four cardinal directions:
+    self.iter_directions_not_nil = function (x, y)
+        local iterator = function ()
+            for name, direction in pairs(DIRECTIONS) do
+                local cell_x = x + direction.X
+                local cell_y = y + direction.Y
+
+                if self.contains(cell_x, cell_y) then
+                    local cell = self.cells[cell_x][cell_y]
+
+                    if cell ~= nil then
+                        coroutine.yield(x, y, cell)
+                    end
+                end
+            end
+        end
+
+        return coroutine.wrap(iterator)
+    end
+
     -- set all the cells in the array to a given value:
     self.fill = function (value)
         for x, y, cell in self.iter() do

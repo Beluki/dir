@@ -20,7 +20,7 @@ end
 
 -- Create a new tile using a random color from a list:
 function RandomTile (colors)
-    local index = math.random(#colors)
+    local index = math.random(5)
     local color = colors[index]
 
     return Tile(color)
