@@ -36,11 +36,11 @@ function TilesAppearing ()
         self.state = 'growing'
 
         -- constant:
-        self.grow_speed = 375
         self.grow_max = 125
+        self.grow_speed = 375
 
-        self.shrink_speed = 150
         self.shrink_min = 100
+        self.shrink_speed = 150
 
         self.alpha_max = 100
         self.alpha_speed = self.grow_speed * 2.5
@@ -307,8 +307,73 @@ function Grid()
         self.disappearing.oncomplete = self.disappearing_completed
         self.growing.oncomplete = self.growing_completed
         self.moving.oncomplete = self.moving_completed
+    end
 
-        self.moving_tile = { x = 0, y = 0, tile = nil }
+    -- starting/marking animation helpers:
+
+    -- start the appearing animation:
+    -- target tiles are expected to be marked with tile.animated = true
+    self.start_appearing = function ()
+        self.tiles_animation = self.appearing
+        self.appearing.reset()
+        self.appearing.play()
+    end
+
+    -- start the disappearing animation:
+    -- target tiles are expected to be marked with tile.animated = true
+    self.start_disappearing = function ()
+        self.tiles_animation = self.disappearing
+        self.disappearing.reset()
+        self.disappearing.play()
+    end
+
+    -- start the growing animation:
+    -- target tiles are expected to be marked with tile.animated = true
+    self.start_growing = function ()
+        self.tiles_animation = self.growing
+        self.growing.reset(TILE_SIZE_GROWTH)
+        self.growing.play()
+    end
+
+    -- start the moving animation:
+    -- target tiles are expected to be marked with tile.animated = true
+    self.start_moving = function (distance, direction)
+        self.tiles_animation = self.moving
+        self.moving.reset(distance, direction)
+        self.moving.play()
+    end
+
+    -- set .animated = true for all the big tiles
+    -- and return the count:
+    self.mark_big_tiles = function ()
+        local count = 0
+
+        for x, y, tile in self.tiles.iter_not_nil() do
+            if tile.big then
+                tile.animated = true
+                count = count + 1
+            end
+        end
+
+        return count
+    end
+
+    -- set .animated = true for all the neighbours of (x, y)
+    -- that match a given color and return the count:
+    self.mark_neighbour_matches = function (x, y, color)
+        local count = 0
+
+        for tile_x, tile_y, tile in self.tiles.iter_neighbours_not_nil(x, y) do
+            if tile.color == color then
+                count = count + 1
+
+                if not tile.big then
+                    tile.animated = true
+                end
+            end
+        end
+
+        return count
     end
 
     -- adding tiles:
@@ -320,13 +385,10 @@ function Grid()
 
         if x ~= nil and y ~= nil then
             local tile = RandomTile(colors)
-            self.tiles.set(x, y, tile)
-
             tile.animated = true
 
-            self.tiles_animation = self.appearing
-            self.appearing.reset()
-            self.appearing.play()
+            self.tiles.set(x, y, tile)
+            self.start_appearing()
         end
     end
 
@@ -423,34 +485,6 @@ function Grid()
         end
     end
 
-
-    self.do_disappear = function ()
-        local total = 0
-
-        for x, y, tile in self.tiles.iter_not_nil() do
-            if tile.big then
-                total = total + 1
-                tile.animated = true
-            end
-        end
-
-        if total > 0 then
-            self.tiles_animation = self.disappearing
-            self.disappearing.reset()
-            self.disappearing.play()
-        else
-            self.add_random_tiles(10, TILE_COLORS)
-        end
-
-        return total
-    end
-
-    self.do_grow = function ()
-        self.tiles_animation = self.growing
-        self.growing.reset(TILE_SIZE_GROWTH)
-        self.growing.play()
-    end
-
     -- updating:
 
     -- update the grid logic:
@@ -479,7 +513,7 @@ function Grid()
             end
         end
 
-        self.add_random_tiles(10, TILE_COLORS)
+        self.add_random_tiles(7, TILE_COLORS)
     end
 
     -- update logic after tiles grew to the big size:
@@ -494,66 +528,56 @@ function Grid()
         end
     end
 
-    -- update logic after tiles moved:
+    -- update logic after a tile has moved:
     self.moving_completed = function ()
         self.tiles_animation = nil
 
-        local distance_x = self.moving.direction.x * (self.moving.distance / TILE_SIZE_BIG)
-        local distance_y = self.moving.direction.y * (self.moving.distance / TILE_SIZE_BIG)
-
-        local old_x = 0
-        local old_y = 0
-        local moved = nil
+        local old_x, old_y, moved
 
         -- find the tile that has been moved:
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
-                old_x = x
-                old_y = y
-                moved = tile
-
+                old_x, old_y, moved = x, y, tile
                 break
             end
         end
 
         -- update position:
-        local new_x = old_x + distance_x
-        local new_y = old_y + distance_y
+        local new_x = old_x + self.moving.direction.x * (self.moving.distance / TILE_SIZE_BIG)
+        local new_y = old_y + self.moving.direction.y * (self.moving.distance / TILE_SIZE_BIG)
 
         self.tiles.set(old_x, old_y, nil)
         self.tiles.set(new_x, new_y, moved)
 
         -- look for matches:
-        local matches = 0
+        local matches = self.mark_neighbour_matches(new_x, new_y, moved.color)
 
-        for x, y, tile in self.tiles.iter_directions_not_nil(new_x, new_y) do
-            if tile.color == moved.color then
-                if not tile.big then
-                    tile.animated = true
-                end
-
-                matches = matches + 1
-            end
-        end
-
-        --  grow animation or disappear if no matches:
+        -- animate the growing tiles:
         if matches > 0 then
             moved.animated = true
-            self.do_grow()
+            self.start_growing()
+
+        -- no match, make the current big tiles disappear:
         else
             moved.animated = false
-            self.do_disappear()
+
+            -- avoid the animation when possible:
+            if self.mark_big_tiles() > 0 then
+                self.start_disappearing()
+            else
+                self.disappearing_completed()
+            end
         end
     end
 
     -- input:
 
-    -- get the (x, y) coordinates for the tile under the mouse cursor:
-    self.mouse_tile = function (mouse_x, mouse_y)
-        local x = math.floor((mouse_x - GRID_X) / TILE_SIZE_BIG) + 1
-        local y = math.floor((mouse_y - GRID_Y) / TILE_SIZE_BIG) + 1
+    -- get (x, y, tile) for the tile at the given point:
+    self.tile_at_point = function (x, y)
+        local tile_x = math.floor((x - GRID_X) / TILE_SIZE_BIG) + 1
+        local tile_y = math.floor((y - GRID_Y) / TILE_SIZE_BIG) + 1
 
-        return x, y, self.tiles.get(x, y)
+        return tile_x, tile_y, self.tiles.get(tile_x, tile_y)
     end
 
     -- handle input:
@@ -563,7 +587,7 @@ function Grid()
             return
         end
 
-        local x, y, tile = self.mouse_tile(mouse_x, mouse_y)
+        local x, y, tile = self.tile_at_point(mouse_x, mouse_y)
 
         -- no tile or not movable:
         if tile == nil or tile.big then
@@ -577,19 +601,15 @@ function Grid()
             return
         end
 
-        local movement = self.tiles.count_nil_direction(x, y, direction)
-        local distance = movement * TILE_SIZE_BIG
+        local distance = self.tiles.count_nil_direction(x, y, direction) * TILE_SIZE_BIG
 
         -- don't move 0 pixels:
         if distance == 0 then
             return
         end
 
-        self.tiles_animation = self.moving
-        self.moving.reset(distance, direction)
-        self.moving.play()
-
         tile.animated = true
+        self.start_moving(distance, direction)
     end
 
     self.init()

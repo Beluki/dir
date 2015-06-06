@@ -5,6 +5,7 @@
 
 -- This is a small 2d array library used in the game grid.
 -- It's reusable and standalone. It does not depend on other libraries.
+-- The functions supported are tailored to dir requirements though.
 
 
 -- Create a new two-dimensional array:
@@ -26,6 +27,8 @@ function Array2d(width, height)
         end
     end
 
+    -- getters/setters:
+
     -- get a cell value:
     self.get = function (x, y)
         return self.cells[x][y]
@@ -42,8 +45,9 @@ function Array2d(width, height)
            and (y >= 1) and (y <= self.height)
     end
 
-    -- traverse the array from top-left to bottom-right
-    -- and return (x, y, cell) for each cell:
+    -- iterators:
+
+    -- yield (x, y, cell) for each cell from top-left to bottom-right:
     self.iter = function ()
         local iterator = function ()
             for y = 1, self.height do
@@ -56,8 +60,7 @@ function Array2d(width, height)
         return coroutine.wrap(iterator)
     end
 
-    -- iterate the array from top-left to bottom-right, row by row
-    -- and return (x, y, value) for each not nil cell:
+    -- yield (x, y, cell) for each not-nil cell from top-left to bottom-right:
     self.iter_not_nil = function ()
         local iterator = function ()
             for x, y, cell in self.iter() do
@@ -70,17 +73,17 @@ function Array2d(width, height)
         return coroutine.wrap(iterator)
     end
 
-    -- iterate cells from a given starting
-    -- point in the four cardinal directions:
-    self.iter_directions = function (x, y)
-        local directions = {
-            { x =  0, y = -1 },
-            { x =  1, y =  0 },
-            { x =  0, y =  1 },
-            { x = -1, y =  0 },
-        }
-
+    -- yield (x, y, cell) for each neighbour cell
+    -- from a starting coordinate:
+    self.iter_neighbours = function (x, y)
         local iterator = function ()
+            local directions = {
+                { x =  0, y = -1 },
+                { x =  1, y =  0 },
+                { x =  0, y =  1 },
+                { x = -1, y =  0 },
+            }
+
             for index, direction in ipairs(directions) do
                 local cell_x = x + direction.x
                 local cell_y = y + direction.y
@@ -94,13 +97,13 @@ function Array2d(width, height)
         return coroutine.wrap(iterator)
     end
 
-    -- iterate not nil cells from a given starting
-    -- point in the four cardinal directions:
-    self.iter_directions_not_nil = function (x, y)
+    -- yield (x, y, cell) for each not-nil neighbour cell
+    -- from a starting coordinate:
+    self.iter_neighbours_not_nil = function (x, y)
         local iterator = function ()
-            for cell_x, cell_y, cell in self.iter_directions(x, y) do
+            for x, y, cell in self.iter_neighbours(x, y) do
                 if cell ~= nil then
-                    coroutine.yield(cell_x, cell_y, cell)
+                    coroutine.yield(x, y, cell)
                 end
             end
         end
@@ -108,19 +111,23 @@ function Array2d(width, height)
         return coroutine.wrap(iterator)
     end
 
-    -- set all the cells in the array to a given value:
+    -- whole-array operations:
+
+    -- set all the cells to a given value:
     self.fill = function (value)
         for x, y, cell in self.iter() do
             self.cells[x][y] = value
         end
     end
 
-    -- set all the cells in the array to nil:
+    -- set all the cells to nil:
     self.clear = function ()
         self.fill(nil)
     end
 
-    -- count the number of cells in the array matching a function:
+    -- counting:
+
+    -- count the number of cells matching a function:
     self.count = function (test)
         local total = 0
 
@@ -133,7 +140,7 @@ function Array2d(width, height)
         return total
     end
 
-    -- count the number of nil cells in the array:
+    -- count the number of nil cells:
     self.count_nil = function ()
         local test = function (cell)
             return cell == nil
@@ -142,7 +149,7 @@ function Array2d(width, height)
         return self.count(test)
     end
 
-    -- count the number of non-nil cells in the array:
+    -- count the number of not-nil cells:
     self.count_not_nil = function ()
         local test = function (cell)
             return cell ~= nil
@@ -151,7 +158,7 @@ function Array2d(width, height)
         return self.count(test)
     end
 
-    -- count the number of cells in the array matching a function
+    -- count the number of cells matching a function
     -- from a starting coordinate in a given direction:
     self.count_direction = function (test, x, y, direction)
         local total = 0
@@ -170,7 +177,7 @@ function Array2d(width, height)
         return total
     end
 
-    -- count the number of nil cells in the array
+    -- count the number of nil cells in the array matching a function
     -- from a starting coordinate in a given direction:
     self.count_nil_direction = function (x, y, direction)
         local test = function (cell)
@@ -180,7 +187,7 @@ function Array2d(width, height)
         return self.count_direction(test, x, y, direction)
     end
 
-    -- count the number of not nil cells in the array
+    -- count the number of not-nil cells in the array matching a function
     -- from a starting coordinate in a given direction:
     self.count_not_nil_direction = function (x, y, direction)
         local test = function (cell)
@@ -189,6 +196,8 @@ function Array2d(width, height)
 
         return self.count_direction(test, x, y, direction)
     end
+
+    -- finding positions:
 
     -- get the (x, y) coordinates for the nth cell matching a function:
     self.nth = function (test, nth)
@@ -203,7 +212,7 @@ function Array2d(width, height)
         end
     end
 
-    -- get the (x, y) coordinates for the nth nil cell in the array:
+    -- get the (x, y) coordinates for the nth nil cell:
     self.nth_nil = function (nth)
         local test = function (cell)
             return cell == nil
@@ -212,16 +221,13 @@ function Array2d(width, height)
         return self.nth(test, nth)
     end
 
-    -- get the (x, y) coordinates for a random nil cell in the array:
+    -- get the (x, y) coordinates for a random nil cell:
     self.nth_random_nil = function ()
         local positions = self.count_nil()
 
-        -- none available:
-        if positions == 0 then
-            return nil, nil
+        if positions > 0 then
+            return self.nth_nil(math.random(positions))
         end
-
-        return self.nth_nil(math.random(positions))
     end
 
     self.init(width, height)
