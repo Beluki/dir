@@ -9,7 +9,7 @@
 
 
 -- Create a new two-dimensional array:
-function Array2d(width, height)
+function Array2d (width, height)
     local self = {}
 
     -- initialization:

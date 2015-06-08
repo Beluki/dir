@@ -5,6 +5,7 @@
 
 require 'constant'
 require 'grid'
+require 'screen'
 require 'tile'
 require 'util'
 
@@ -15,7 +16,11 @@ function Game()
 
     -- initialization:
     self.init = function ()
-        self.grid = Grid()
+        self.grid = Grid(7, 5)
+        self.screen = Screen(7, 5)
+
+        self.resize()
+
         self.grid.add_random_tiles_filling(50, TILE_COLORS)
     end
 
@@ -23,7 +28,7 @@ function Game()
     self.draw = function ()
         love.graphics.setBackgroundColor(255, 255, 255)
 
-        self.grid.draw()
+        self.grid.draw(self.screen)
     end
 
     -- update the game logic:
@@ -31,18 +36,36 @@ function Game()
         self.grid.update(dt)
     end
 
-    -- handle input:
+    -- auto resize:
+    self.resize = function (window_width, window_height)
+        local width = window_width or love.window.getWidth()
+        local height = window_height or love.window.getHeight()
+
+        self.screen.update(width, height)
+    end
+
+    -- handle mouse input:
     self.mousepressed = function (x, y, button)
         local component = self.point_to_component(x, y)
 
         if component ~= nil then
-            component.mousepressed(x, y, button)
+            component.mousepressed(self.screen, x, y, button)
+        end
+    end
+
+    -- handle keyboard input:
+    self.keypressed = function (key)
+        if key == 'escape' then
+            love.event.quit()
+
+        elseif key == 'f' then
+            toggle_fullscreen()
         end
     end
 
     -- given a point in the window, determine which game component contains it:
     self.point_to_component = function (x, y)
-        if point_inside_rect(x, y, GRID_X, GRID_Y, GRID_WIDTH, GRID_HEIGHT) then
+        if self.screen.point_inside_grid(x, y) then
             return self.grid
         end
     end

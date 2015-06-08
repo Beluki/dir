@@ -175,24 +175,24 @@ function TilesGrowing ()
         self.offset_x = 0
         self.offset_y = 0
 
-        self.size_max = 0
+        self.grow_max = 0
         self.speed = 0
     end
 
     -- reset the animation settings:
-    self.reset = function (size_max)
+    self.reset = function (grow_max)
         self.init()
 
-        self.size_max = size_max
-        self.speed = size_max * 3
+        self.grow_max = grow_max
+        self.speed = grow_max * 3
     end
 
     -- update the animation logic:
     self.update = function (dt)
         if self.running then
-            self.size = math.min(self.size + (self.speed * dt), self.size_max)
+            self.size = math.min(self.size + (self.speed * dt), self.grow_max)
 
-            if self.size == self.size_max then
+            if self.size == self.grow_max then
                 self.running = false
                 self.finished = true
                 self.oncomplete()
@@ -290,12 +290,12 @@ end
 
 
 -- Create a new grid:
-function Grid()
+function Grid (width, height)
     local self = {}
 
     -- initialization:
-    self.init = function ()
-        self.tiles = Array2d(GRID_TILE_WIDTH, GRID_TILE_HEIGHT)
+    self.init = function (width, height)
+        self.tiles = Array2d(width, height)
         self.tiles_animation = nil
 
         self.appearing = TilesAppearing()
@@ -331,7 +331,7 @@ function Grid()
     -- target tiles are expected to be marked with tile.animated = true
     self.start_growing = function ()
         self.tiles_animation = self.growing
-        self.growing.reset(TILE_SIZE_GROWTH)
+        self.growing.reset(TILE_SIZE_SMALL_GROW_PERCENTAGE)
         self.growing.play()
     end
 
@@ -415,26 +415,26 @@ function Grid()
     -- drawing:
 
     -- draw the background squares:
-    self.draw_background = function ()
-        local offset = (TILE_SIZE_BIG - TILE_SIZE_SMALL) / 2
+    self.draw_background = function (screen)
+        local offset = (screen.tile_size - screen.tile_size_small) / 2
 
         for x, y, tile in self.tiles.iter() do
-            local screen_x = GRID_X + ((x - 1) * TILE_SIZE_BIG) + offset
-            local screen_y = GRID_Y + ((y - 1) * TILE_SIZE_BIG) + offset
+            local screen_x = screen.grid_x + ((x - 1) * screen.tile_size) + offset
+            local screen_y = screen.grid_y + ((y - 1) * screen.tile_size) + offset
 
-            draw_square(screen_x, screen_y, TILE_SIZE_SMALL, BACKGROUND_TILE_COLOR)
+            draw_square(screen_x, screen_y, screen.tile_size_small, BACKGROUND_TILE_COLOR)
         end
     end
 
     -- draw a tile in the (x, y) grid coordinates:
-    self.draw_tile = function (x, y, tile)
+    self.draw_tile = function (screen, x, y, tile)
         local R = tile.color.R
         local G = tile.color.G
         local B = tile.color.B
 
         -- drawing values for non-animated tiles:
         local alpha = 255
-        local size = tile.big and TILE_SIZE_BIG or TILE_SIZE_SMALL
+        local size = tile.big and screen.tile_size or screen.tile_size_small
         local offset_x = 0
         local offset_y = 0
 
@@ -442,46 +442,46 @@ function Grid()
         if tile.animated then
             alpha = alpha * (self.tiles_animation.alpha / 100)
             size = size * (self.tiles_animation.size / 100)
-            offset_x = offset_x + self.tiles_animation.offset_x
-            offset_y = offset_y + self.tiles_animation.offset_y
+            offset_x = offset_x + (self.tiles_animation.offset_x * screen.tile_size)
+            offset_y = offset_y + (self.tiles_animation.offset_y * screen.tile_size)
         end
 
         -- calculate base screen coordinates:
-        local screen_x = GRID_X + ((x - 1) * TILE_SIZE_BIG)
-        local screen_y = GRID_Y + ((y - 1) * TILE_SIZE_BIG)
+        local screen_x = screen.grid_x + ((x - 1) * screen.tile_size)
+        local screen_y = screen.grid_y + ((y - 1) * screen.tile_size)
 
         -- add animation size and offset:
-        screen_x = screen_x + ((TILE_SIZE_BIG - size) / 2) + offset_x
-        screen_y = screen_y + ((TILE_SIZE_BIG - size) / 2) + offset_y
+        screen_x = screen_x + ((screen.tile_size - size) / 2) + offset_x
+        screen_y = screen_y + ((screen.tile_size - size) / 2) + offset_y
 
         draw_square(screen_x, screen_y, size, { R, G, B, alpha })
     end
 
     -- draw static tiles:
-    self.draw_static_tiles = function ()
+    self.draw_static_tiles = function (screen)
         for x, y, tile in self.tiles.iter_not_nil() do
             if not tile.animated then
-                self.draw_tile(x, y, tile)
+                self.draw_tile(screen, x, y, tile)
             end
         end
     end
 
     -- draw the current animation tiles:
-    self.draw_animated_tiles = function ()
+    self.draw_animated_tiles = function (screen)
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
-                self.draw_tile(x, y, tile)
+                self.draw_tile(screen, x, y, tile)
             end
         end
     end
 
     -- draw the grid:
-    self.draw = function ()
-        self.draw_background()
-        self.draw_static_tiles()
+    self.draw = function (screen)
+        self.draw_background(screen)
+        self.draw_static_tiles(screen)
 
         if self.tiles_animation ~= nil then
-            self.draw_animated_tiles()
+            self.draw_animated_tiles(screen)
         end
     end
 
@@ -513,7 +513,7 @@ function Grid()
             end
         end
 
-        self.add_random_tiles(7, TILE_COLORS)
+        self.add_random_tiles(8, TILE_COLORS)
     end
 
     -- update logic after tiles grew to the big size:
@@ -543,8 +543,8 @@ function Grid()
         end
 
         -- update position:
-        local new_x = old_x + self.moving.direction.x * (self.moving.distance / TILE_SIZE_BIG)
-        local new_y = old_y + self.moving.direction.y * (self.moving.distance / TILE_SIZE_BIG)
+        local new_x = old_x + (self.moving.direction.x * self.moving.distance)
+        local new_y = old_y + (self.moving.direction.y * self.moving.distance)
 
         self.tiles.set(old_x, old_y, nil)
         self.tiles.set(new_x, new_y, moved)
@@ -573,21 +573,21 @@ function Grid()
     -- input:
 
     -- get (x, y, tile) for the tile at the given point:
-    self.tile_at_point = function (x, y)
-        local tile_x = math.floor((x - GRID_X) / TILE_SIZE_BIG) + 1
-        local tile_y = math.floor((y - GRID_Y) / TILE_SIZE_BIG) + 1
+    self.tile_at_point = function (screen, x, y)
+        local tile_x = math.floor((x - screen.grid_x) / screen.tile_size) + 1
+        local tile_y = math.floor((y - screen.grid_y) / screen.tile_size) + 1
 
         return tile_x, tile_y, self.tiles.get(tile_x, tile_y)
     end
 
     -- handle input:
-    self.mousepressed = function (mouse_x, mouse_y, button)
+    self.mousepressed = function (screen, mouse_x, mouse_y, button)
         -- no move during animations:
         if self.tiles_animation ~= nil then
             return
         end
 
-        local x, y, tile = self.tile_at_point(mouse_x, mouse_y)
+        local x, y, tile = self.tile_at_point(screen, mouse_x, mouse_y)
 
         -- no tile or not movable:
         if tile == nil or tile.big then
@@ -601,7 +601,7 @@ function Grid()
             return
         end
 
-        local distance = self.tiles.count_nil_direction(x, y, direction) * TILE_SIZE_BIG
+        local distance = self.tiles.count_nil_direction(x, y, direction)
 
         -- don't move 0 pixels:
         if distance == 0 then
@@ -612,7 +612,7 @@ function Grid()
         self.start_moving(distance, direction)
     end
 
-    self.init()
+    self.init(width, height)
     return self
 end
 
