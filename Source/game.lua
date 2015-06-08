@@ -3,6 +3,10 @@
 -- A simple, minimalistic puzzle game.
 
 
+-- The Game object glues all the other components
+-- and provides callbacks for Love2D.
+
+
 require 'constant'
 require 'grid'
 require 'screen'
@@ -11,18 +15,20 @@ require 'util'
 
 
 -- Create a new game object:
-function Game()
+function Game ()
     local self = {}
 
     -- initialization:
     self.init = function ()
-        self.grid = Grid(7, 5)
-        self.screen = Screen(7, 5)
+        self.grid = Grid(GRID_TILE_WIDTH, GRID_TILE_HEIGHT)
+        self.screen = Screen(GRID_TILE_WIDTH, GRID_TILE_HEIGHT)
 
         self.resize()
 
         self.grid.add_random_tiles_filling(50, TILE_COLORS)
     end
+
+    -- love callbacks:
 
     -- draw the game:
     self.draw = function ()
@@ -36,12 +42,21 @@ function Game()
         self.grid.update(dt)
     end
 
-    -- auto resize:
+    -- update the element sizes and positions on resize:
     self.resize = function (window_width, window_height)
         local width = window_width or love.window.getWidth()
         local height = window_height or love.window.getHeight()
 
         self.screen.update(width, height)
+    end
+
+    -- handle keyboard input:
+    self.keypressed = function (key)
+        if key == 'escape' then
+            love.event.quit()
+        elseif key == 'f' then
+            toggle_fullscreen()
+        end
     end
 
     -- handle mouse input:
@@ -53,15 +68,7 @@ function Game()
         end
     end
 
-    -- handle keyboard input:
-    self.keypressed = function (key)
-        if key == 'escape' then
-            love.event.quit()
-
-        elseif key == 'f' then
-            toggle_fullscreen()
-        end
-    end
+    -- helpers:
 
     -- given a point in the window, determine which game component contains it:
     self.point_to_component = function (x, y)

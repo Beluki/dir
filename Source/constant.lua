@@ -2,32 +2,27 @@
 -- dir.
 -- A simple, minimalistic puzzle game.
 
--- Size percentages:
+
+-- Grid size (tiles):
+GRID_TILE_WIDTH = 6
+GRID_TILE_HEIGHT = 5
+
+-- Small tiles size percentage with respect to big tiles:
 TILE_SIZE_SMALL_PERCENTAGE = 60
 TILE_SIZE_SMALL_GROW_PERCENTAGE = (100 / TILE_SIZE_SMALL_PERCENTAGE) * 100
 
+
 -- All the available tile colors:
 TILE_COLORS = {
-    { R = 255, G =  50, B =  50 }, -- red
-    { R =  35, G = 217, B =  82 }, -- green
-    { R =  22, G = 127, B = 252 }, -- blue
-    { R = 255, G = 221, B =  47 }, -- yellow
-    { R = 255, G =  89, B = 220 }, -- purple
+    {  255,   50,   50 }, -- red
+    {   35,  217,   82 }, -- green
+    {   22,  127,  252 }, -- blue
+    {  255,  221,   47 }, -- yellow
+    {  255,   89,  220 }, -- purple
 }
 
 BACKGROUND_TILE_COLOR = { 240, 240, 240 }
 
---
--- TILE_COLORS = {
---    { R = 255, G =  24, B = 115 },
---    { R =  13, G = 255, B = 242 },
---    { R = 255, G = 205, B =  25 },
---    { R = 167, G =  87, B = 171 },
---    { R =  24, G = 255, B =  30 },
--- }
-
--- Background tiles color:
--- BACKGROUND_TILE_COLOR = { 10, 10, 10 }
 
 -- Movement coordinates:
 DIRECTIONS = {

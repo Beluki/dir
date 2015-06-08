@@ -309,7 +309,7 @@ function Grid (width, height)
         self.moving.oncomplete = self.moving_completed
     end
 
-    -- starting/marking animation helpers:
+    -- animation helpers:
 
     -- start the appearing animation:
     -- target tiles are expected to be marked with tile.animated = true
@@ -365,11 +365,11 @@ function Grid (width, height)
 
         for tile_x, tile_y, tile in self.tiles.iter_neighbours_not_nil(x, y) do
             if tile.color == color then
-                count = count + 1
-
                 if not tile.big then
                     tile.animated = true
                 end
+
+                count = count + 1
             end
         end
 
@@ -428,9 +428,7 @@ function Grid (width, height)
 
     -- draw a tile in the (x, y) grid coordinates:
     self.draw_tile = function (screen, x, y, tile)
-        local R = tile.color.R
-        local G = tile.color.G
-        local B = tile.color.B
+        local R, G, B = unpack(tile.color)
 
         -- drawing values for non-animated tiles:
         local alpha = 255
@@ -513,7 +511,7 @@ function Grid (width, height)
             end
         end
 
-        self.add_random_tiles(8, TILE_COLORS)
+        self.add_random_tiles(7, TILE_COLORS)
     end
 
     -- update logic after tiles grew to the big size:

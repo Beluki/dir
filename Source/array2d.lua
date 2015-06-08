@@ -73,7 +73,7 @@ function Array2d (width, height)
         return coroutine.wrap(iterator)
     end
 
-    -- yield (x, y, cell) for each neighbour cell
+    -- yield (x, y, cell) for each neighbour cell (top, right, bottom, left)
     -- from a starting coordinate:
     self.iter_neighbours = function (x, y)
         local iterator = function ()
@@ -97,7 +97,7 @@ function Array2d (width, height)
         return coroutine.wrap(iterator)
     end
 
-    -- yield (x, y, cell) for each not-nil neighbour cell
+    -- yield (x, y, cell) for each not-nil neighbour cell (top, right, bottom, left)
     -- from a starting coordinate:
     self.iter_neighbours_not_nil = function (x, y)
         local iterator = function ()
@@ -177,7 +177,7 @@ function Array2d (width, height)
         return total
     end
 
-    -- count the number of nil cells in the array matching a function
+    -- count the number of nil cells matching a function
     -- from a starting coordinate in a given direction:
     self.count_nil_direction = function (x, y, direction)
         local test = function (cell)
@@ -187,7 +187,7 @@ function Array2d (width, height)
         return self.count_direction(test, x, y, direction)
     end
 
-    -- count the number of not-nil cells in the array matching a function
+    -- count the number of not-nil cells matching a function
     -- from a starting coordinate in a given direction:
     self.count_not_nil_direction = function (x, y, direction)
         local test = function (cell)
@@ -225,9 +225,12 @@ function Array2d (width, height)
     self.nth_random_nil = function ()
         local positions = self.count_nil()
 
-        if positions > 0 then
-            return self.nth_nil(math.random(positions))
+        -- no nil positions:
+        if positions == 0 then
+            return nil, nil
         end
+
+        return self.nth_nil(math.random(positions))
     end
 
     self.init(width, height)

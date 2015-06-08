@@ -6,8 +6,8 @@
 require 'util'
 
 
--- Since all the graphics are vector-based and the animations work on percentages
--- the game is resolution independent. The screen object keeps track of all
+-- Since all the graphics are vector-based and the animations work with percentages
+-- the game is resolution independent. The Screen object keeps track of all
 -- the elements size and position on the screen.
 
 
@@ -19,7 +19,6 @@ function Screen (grid_tile_width, grid_tile_height)
     self.init = function (grid_tile_width, grid_tile_height)
         self.tile_size = 0
         self.tile_size_small = 0
-        self.tile_size_growth = 0
 
         self.hud_tile_height = 1
         self.hud_width = 0
@@ -40,7 +39,7 @@ function Screen (grid_tile_width, grid_tile_height)
         return point_inside_rect(x, y, self.grid_x, self.grid_y, self.grid_width, self.grid_height)
     end
 
-    -- recalculate sizes and positions based on a given resolution:
+    -- recalculate sizes and positions for a window resolution:
     self.update = function (width, height)
 
         -- calculate the minimum tile size that fills the window width or height:

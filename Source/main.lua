@@ -12,11 +12,11 @@ function love.load ()
 
     local game = Game()
 
-    -- attach our callbacks:
-    love.update = game.update
+    -- attach callbacks:
     love.draw = game.draw
+    love.update = game.update
     love.resize = game.resize
-    love.mousepressed = game.mousepressed
     love.keypressed = game.keypressed
+    love.mousepressed = game.mousepressed
 end
 
