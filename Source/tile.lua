@@ -3,6 +3,12 @@
 -- A simple, minimalistic puzzle game.
 
 
+-- All the tiles have three properties:
+-- .color is an index into the current theme colors.
+-- .big determines whether the tile has matched neighbour tiles.
+-- .animated is true when the tile is subject to the current grid animation.
+
+
 -- Create a new tile:
 function Tile (color)
     local self = {}
@@ -16,13 +22,5 @@ function Tile (color)
 
     self.init(color)
     return self
-end
-
--- Create a new tile using a random color from a list:
-function RandomTile (colors)
-    local index = math.random(#colors)
-    local color = colors[index]
-
-    return Tile(color)
 end
 

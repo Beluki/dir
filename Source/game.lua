@@ -3,15 +3,16 @@
 -- A simple, minimalistic puzzle game.
 
 
+require 'constant'
+require 'gamestate'
+require 'grid'
+require 'hud'
+require 'screen'
+require 'theme'
+
+
 -- The Game object glues all the other components
 -- and provides callbacks for Love2D.
-
-
-require 'constant'
-require 'grid'
-require 'screen'
-require 'tile'
-require 'util'
 
 
 -- Create a new game object:
@@ -20,25 +21,31 @@ function Game ()
 
     -- initialization:
     self.init = function ()
-        self.grid = Grid(GRID_TILE_WIDTH, GRID_TILE_HEIGHT)
-        self.screen = Screen(GRID_TILE_WIDTH, GRID_TILE_HEIGHT)
+        self.gamestate = GameState()
 
+        self.hud = Hud(self.gamestate)
+        self.grid = Grid(GRID_WIDTH, GRID_HEIGHT, self.gamestate)
+
+        self.screen = Screen(GRID_WIDTH, GRID_HEIGHT)
+        self.theme = ThemeLight()
         self.resize()
 
-        self.grid.add_random_tiles_filling(50, TILE_COLORS)
+        self.grid.add_random_tiles_filling(30, 3)
     end
 
-    -- love callbacks:
+    -- callbacks:
 
     -- draw the game:
     self.draw = function ()
-        love.graphics.setBackgroundColor(255, 255, 255)
+        love.graphics.setBackgroundColor(self.theme.background)
 
-        self.grid.draw(self.screen)
+        self.hud.draw(self.screen, self.theme)
+        self.grid.draw(self.screen, self.theme)
     end
 
     -- update the game logic:
     self.update = function (dt)
+        self.hud.update(dt)
         self.grid.update(dt)
     end
 
@@ -47,15 +54,13 @@ function Game ()
         local width = window_width or love.window.getWidth()
         local height = window_height or love.window.getHeight()
 
-        self.screen.update(width, height)
+        self.screen.resize(width, height)
     end
 
     -- handle keyboard input:
     self.keypressed = function (key)
         if key == 'escape' then
             love.event.quit()
-        elseif key == 'f' then
-            toggle_fullscreen()
         end
     end
 
@@ -72,6 +77,10 @@ function Game ()
 
     -- given a point in the window, determine which game component contains it:
     self.point_to_component = function (x, y)
+        if self.screen.point_inside_hud(x, y) then
+            return self.hud
+        end
+
         if self.screen.point_inside_grid(x, y) then
             return self.grid
         end

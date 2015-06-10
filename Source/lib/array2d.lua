@@ -41,8 +41,10 @@ function Array2d (width, height)
 
     -- determine whether a coordinate is in the array bounds:
     self.contains = function (x, y)
-        return (x >= 1) and (x <= self.width)
-           and (y >= 1) and (y <= self.height)
+        return (x >= 1)
+           and (y >= 1)
+           and (x <= self.width)
+           and (y <= self.height)
     end
 
     -- iterators:
