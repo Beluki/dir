@@ -8,8 +8,6 @@
 -- with new ones, without touching anything else in the game source.
 
 
--- Drawing:
-
 -- Draw a square:
 function draw_square (x, y, size, color)
     love.graphics.setColor(color)
@@ -21,5 +19,10 @@ function draw_text (text, x, y, color, font)
     love.graphics.setColor(color)
     love.graphics.setFont(font)
     love.graphics.print(text, x, y)
+end
+
+-- Toggle between full screen and windowed:
+function window_toggle_fullscreen ()
+    love.window.setFullscreen(not love.window.getFullscreen())
 end
 

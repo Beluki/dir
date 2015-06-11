@@ -38,7 +38,7 @@ function ThemeDark ()
         self.name = "dark"
         self.background = { 0, 0, 0 }
         self.background_tile = { 10, 10, 10 }
-        self.hud_font = { 20, 20, 20 }
+        self.hud_font = { 100, 100, 100 }
 
         self.tiles = {
             { 255,  24, 115 }, -- pink

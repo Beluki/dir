@@ -61,6 +61,9 @@ function Game ()
     self.keypressed = function (key)
         if key == 'escape' then
             love.event.quit()
+
+        elseif key =='f' then
+            window_toggle_fullscreen()
         end
     end
 

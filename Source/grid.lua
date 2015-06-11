@@ -48,11 +48,16 @@ function Grid (width, height, gamestate)
     end
 
     -- start the disappearing animation:
-    -- (target tiles are expected to be marked with tile.animated = true)
     self.start_disappearing = function ()
         self.tiles_animation = self.disappearing
-        self.disappearing.reset()
-        self.disappearing.play()
+
+        -- avoid the animation when possible:
+        if self.mark_big_tiles() > 0 then
+            self.disappearing.reset()
+            self.disappearing.play()
+        else
+            self.disappearing_completed()
+        end
     end
 
     -- start the growing animation:
@@ -145,14 +150,12 @@ function Grid (width, height, gamestate)
 
     -- checking the grid state:
 
-    -- determine if the grid contains no tiles:
-    self.is_empty = function ()
-        return self.tiles.count_not_nil() == 0
+    self.is_full = function ()
+       return self.tiles.count_nil() == 0
     end
 
-    -- determine if the grid is completely filled:
-    self.is_full = function ()
-        return self.tiles.count_nil() == 0
+    self.is_empty = function ()
+        return self.tiles.count_not_nil() == 0
     end
 
     -- determine if there are moves available:
@@ -263,25 +266,32 @@ function Grid (width, height, gamestate)
     self.disappearing_completed = function ()
         self.tiles_animation = nil
 
+        local tile_count = 0
+
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
+                tile.animated = false
                 self.tiles.set(x, y, nil)
+
+                tile_count = tile_count + 1
             end
         end
 
-        self.gamestate.disappearing_completed(10)
-
-        self.add_random_tiles(self.gamestate.tiles)
+        self.gamestate.disappearing_completed(tile_count, self)
     end
 
     -- update logic after tiles matched neighbours:
     self.growing_completed = function ()
         self.tiles_animation = nil
 
+        local tile_count = 0
+
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
                 tile.animated = false
                 tile.big = true
+
+                tile_count = tile_count + 1
             end
         end
 
@@ -289,6 +299,8 @@ function Grid (width, height, gamestate)
             self.mark_big_tiles()
             self.start_disappearing()
         end
+
+        self.gamestate.growing_completed(tile_count)
     end
 
     -- update logic after a tile has moved:
@@ -318,20 +330,14 @@ function Grid (width, height, gamestate)
         local matches = self.mark_neighbour_matches(new_x, new_y, moved.color)
 
         if matches > 0 then
-            -- match, animate the growing tiles, including the moved one:
             moved.animated = true
             self.start_growing()
         else
-            -- no match, make the current matched tiles disappear:
             moved.animated = false
-
-            -- avoid the animation when possible:
-            if self.mark_big_tiles() > 0 then
-                self.start_disappearing()
-            else
-                self.disappearing_completed()
-            end
+            self.start_disappearing()
         end
+
+        self.gamestate.moving_completed()
     end
 
     -- input:
