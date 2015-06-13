@@ -4,13 +4,13 @@
 
 
 -- All the tiles have three properties:
--- .color is an index into the current theme colors.
--- .big determines whether the tile has matched neighbour tiles.
--- .animated is true when the tile is subject to the current grid animation.
+--   .color is an index into the current theme colors.
+--   .big determines whether the tile has matched neighbour tiles.
+--   .animated is true when the tile is subject to the current grid animation.
 
 
 -- Create a new tile:
-function Tile (color)
+function GridTile (color)
     local self = {}
 
     -- initialization:

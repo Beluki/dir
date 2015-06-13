@@ -3,6 +3,8 @@
 -- A simple, minimalistic puzzle game.
 
 
+require 'lib/love2d'
+
 require 'constant'
 require 'gamestate'
 require 'grid'
@@ -11,7 +13,7 @@ require 'screen'
 require 'theme'
 
 
--- The Game object glues all the other components
+-- The Game object glues all the other components together
 -- and provides callbacks for Love2D.
 
 
@@ -21,26 +23,33 @@ function Game ()
 
     -- initialization:
     self.init = function ()
-        self.gamestate = GameState()
+        self.grid_width = 5
+        self.grid_height = 5
 
-        self.hud = Hud(self.gamestate)
-        self.grid = Grid(GRID_WIDTH, GRID_HEIGHT, self.gamestate)
+        self.gamestate = GameState(self)
+        self.hud = Hud(self)
+        self.grid = Grid(self)
+        self.screen = Screen(self)
+        self.theme = ThemeLight(self)
 
-        self.screen = Screen(GRID_WIDTH, GRID_HEIGHT)
-        self.theme = ThemeLight()
         self.resize()
+        self.restart()
+    end
 
-        self.grid.add_random_tiles_filling(30, 3)
+    -- Restart the game:
+    self.restart = function ()
+        self.grid.tiles.clear()
+        self.gamestate.restart()
     end
 
     -- callbacks:
 
     -- draw the game:
     self.draw = function ()
-        love.graphics.setBackgroundColor(self.theme.background)
+        love2d.graphics_set_background_color(self.theme.background)
 
-        self.hud.draw(self.screen, self.theme)
-        self.grid.draw(self.screen, self.theme)
+        self.hud.draw()
+        self.grid.draw()
     end
 
     -- update the game logic:
@@ -51,8 +60,8 @@ function Game ()
 
     -- update the element sizes and positions on resize:
     self.resize = function (window_width, window_height)
-        local width = window_width or love.window.getWidth()
-        local height = window_height or love.window.getHeight()
+        local width = window_width or love2d.window_width()
+        local height = window_height or love2d.window_height()
 
         self.screen.resize(width, height)
     end
@@ -60,10 +69,13 @@ function Game ()
     -- handle keyboard input:
     self.keypressed = function (key)
         if key == 'escape' then
-            love.event.quit()
+            love2d_event_quit()
 
         elseif key =='f' then
-            window_toggle_fullscreen()
+            love2d.window_toggle_fullscreen()
+
+        elseif key == 'r' then
+            self.restart()
         end
     end
 
@@ -71,8 +83,8 @@ function Game ()
     self.mousepressed = function (x, y, button)
         local component = self.point_to_component(x, y)
 
-        if component ~= nil then
-            component.mousepressed(self.screen, x, y, button)
+        if component then
+            component.mousepressed(x, y, button)
         end
     end
 

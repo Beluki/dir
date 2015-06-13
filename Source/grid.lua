@@ -7,21 +7,23 @@ require 'lib/array2d'
 require 'lib/love2d'
 
 require 'grid_animation'
-require 'tile'
+require 'grid_tile'
 
 
 -- This is the grid where gameplay takes place.
--- The implementation does not keep game state directly but uses an external object
--- so that scoring or combo values are easily modified.
+-- It mostly cares about animations, calling gamestate to handle
+-- scoring and leveling instead.
 
 
 -- Create a new grid:
-function Grid (width, height, gamestate)
+function Grid (game)
     local self = {}
 
     -- initialization:
-    self.init = function (width, height, gamestate)
-        self.tiles = Array2d(width, height)
+    self.init = function (game)
+        self.game = game
+
+        self.tiles = Array2d(game.grid_width, game.grid_height)
         self.tiles_animation = nil
 
         self.appearing = GridTilesAppearing()
@@ -33,8 +35,41 @@ function Grid (width, height, gamestate)
         self.disappearing.oncomplete = self.disappearing_completed
         self.growing.oncomplete = self.growing_completed
         self.moving.oncomplete = self.moving_completed
+    end
 
-        self.gamestate = gamestate
+    -- marking tiles for animation:
+
+    -- set .animated = true for all the big tiles
+    -- and return the count:
+    self.mark_big_tiles = function ()
+        local count = 0
+
+        for x, y, tile in self.tiles.iter_not_nil() do
+            if tile.big then
+                tile.animated = true
+                count = count + 1
+            end
+        end
+
+        return count
+    end
+
+    -- set .animated = true for all the neighbours of (x, y)
+    -- that match a color and return the count:
+    self.mark_neighbour_matches = function (x, y, color)
+        local count = 0
+
+        for tile_x, tile_y, tile in self.tiles.iter_neighbours_not_nil(x, y) do
+            if tile.color == color then
+                if not tile.big then
+                    tile.animated = true
+                end
+
+                count = count + 1
+            end
+        end
+
+        return count
     end
 
     -- concise animation methods:
@@ -48,10 +83,12 @@ function Grid (width, height, gamestate)
     end
 
     -- start the disappearing animation:
+    -- (marks big tiles as needed)
     self.start_disappearing = function ()
         self.tiles_animation = self.disappearing
 
-        -- avoid the animation when possible:
+        -- avoid the animation when no big tiles have been marked
+        -- this makes gameplay more fluid:
         if self.mark_big_tiles() > 0 then
             self.disappearing.reset()
             self.disappearing.play()
@@ -76,50 +113,15 @@ function Grid (width, height, gamestate)
         self.moving.play()
     end
 
-    -- marking tiles for animation:
-
-    -- set .animated = true for all the big tiles
-    -- and return the count:
-    self.mark_big_tiles = function ()
-        local count = 0
-
-        for x, y, tile in self.tiles.iter_not_nil() do
-            if tile.big then
-                tile.animated = true
-                count = count + 1
-            end
-        end
-
-        return count
-    end
-
-    -- set .animated = true for all the neighbours of (x, y)
-    -- that match a given color and return the count:
-    self.mark_neighbour_matches = function (x, y, color)
-        local count = 0
-
-        for tile_x, tile_y, tile in self.tiles.iter_neighbours_not_nil(x, y) do
-            if tile.color == color then
-                if not tile.big then
-                    tile.animated = true
-                end
-
-                count = count + 1
-            end
-        end
-
-        return count
-    end
-
     -- adding new tiles:
 
     -- add a random colored tile in a random position:
-    self.add_random_tile = function ()
+    self.add_random_tile = function (colors)
         local x, y = self.tiles.nth_random_nil()
 
         if x and y then
-            local color = math.random(self.gamestate.colors)
-            local tile = Tile(color)
+            local color = math.random(colors)
+            local tile = GridTile(color)
 
             self.tiles.set(x, y, tile)
 
@@ -129,36 +131,38 @@ function Grid (width, height, gamestate)
     end
 
     -- add N random tiles in random positions:
-    self.add_random_tiles = function (count)
+    self.add_random_tiles = function (colors, count)
         for i = 1, count do
-            self.add_random_tile()
+            self.add_random_tile(colors)
         end
     end
 
-    -- add random tiles until a certain grid percentage is filled:
-    self.add_random_tiles_filling = function (percentage)
+    -- add random tiles until a percentage is filled:
+    self.add_random_tiles_filling = function (colors, percentage)
         local total = self.tiles.width * self.tiles.height
 
         local used = self.tiles.count_not_nil()
         local required = math.floor(percentage * (total / 100))
 
         while used < required do
-            self.add_random_tile()
+            self.add_random_tile(colors)
             used = used + 1
         end
     end
 
     -- checking the grid state:
 
+    -- determine whether there are no empty positions:
     self.is_full = function ()
        return self.tiles.count_nil() == 0
     end
 
+    -- determine whether there are no tiles:
     self.is_empty = function ()
         return self.tiles.count_not_nil() == 0
     end
 
-    -- determine if there are moves available:
+    -- determine whether there are no moves available:
     self.is_deadlocked = function ()
         for x, y, tile in self.tiles.iter_not_nil() do
             if not tile.big then
@@ -176,20 +180,24 @@ function Grid (width, height, gamestate)
     -- drawing:
 
     -- draw the background squares:
-    self.draw_background = function (screen, theme)
+    self.draw_background = function ()
+        local screen = self.game.screen
+        local theme = self.game.theme
+
         local offset = (screen.tile_size - screen.tile_size_small) / 2
 
         for x, y, tile in self.tiles.iter() do
             local screen_x = screen.grid_x + ((x - 1) * screen.tile_size) + offset
             local screen_y = screen.grid_y + ((y - 1) * screen.tile_size) + offset
 
-            draw_square(screen_x, screen_y, screen.tile_size_small, theme.background_tile)
+            love2d.draw_square(screen_x, screen_y, screen.tile_size_small, theme.background_tile)
         end
     end
 
     -- draw a tile in the (x, y) grid coordinates:
-    self.draw_tile = function (screen, theme, x, y, tile)
-        local R, G, B = unpack(theme.tiles[tile.color])
+    self.draw_tile = function (x, y, tile)
+        local screen = self.game.screen
+        local color = self.game.theme.tiles[tile.color]
 
         -- default drawing values (non-animated tiles):
         local alpha = 255
@@ -213,34 +221,34 @@ function Grid (width, height, gamestate)
         screen_x = screen_x + ((screen.tile_size - size) / 2) + offset_x
         screen_y = screen_y + ((screen.tile_size - size) / 2) + offset_y
 
-        draw_square(screen_x, screen_y, size, { R, G, B, alpha })
+        love2d.draw_square(screen_x, screen_y, size, { color.R, color.G, color.B, alpha })
     end
 
     -- draw static tiles:
-    self.draw_static_tiles = function (screen, theme)
+    self.draw_static_tiles = function ()
         for x, y, tile in self.tiles.iter_not_nil() do
             if not tile.animated then
-                self.draw_tile(screen, theme, x, y, tile)
+                self.draw_tile(x, y, tile)
             end
         end
     end
 
     -- draw the animation tiles:
-    self.draw_animated_tiles = function (screen, theme)
+    self.draw_animated_tiles = function ()
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
-                self.draw_tile(screen, theme, x, y, tile)
+                self.draw_tile(x, y, tile)
             end
         end
     end
 
     -- draw the grid:
-    self.draw = function (screen, theme)
-        self.draw_background(screen, theme)
-        self.draw_static_tiles(screen, theme)
+    self.draw = function ()
+        self.draw_background()
+        self.draw_static_tiles()
 
         if self.tiles_animation then
-            self.draw_animated_tiles(screen, theme)
+            self.draw_animated_tiles()
         end
     end
 
@@ -248,7 +256,7 @@ function Grid (width, height, gamestate)
 
     -- update the grid logic:
     self.update = function (dt)
-        if self.tiles_animation ~= nil then
+        if self.tiles_animation then
             self.tiles_animation.update(dt)
         end
     end
@@ -260,47 +268,40 @@ function Grid (width, height, gamestate)
         for x, y, tile in self.tiles.iter_not_nil() do
             tile.animated = false
         end
+
+        self.game.gamestate.appearing_completed()
     end
 
     -- update logic after tiles disappeared:
     self.disappearing_completed = function ()
         self.tiles_animation = nil
 
-        local tile_count = 0
-
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
                 tile.animated = false
                 self.tiles.set(x, y, nil)
-
-                tile_count = tile_count + 1
             end
         end
 
-        self.gamestate.disappearing_completed(tile_count, self)
+        self.game.gamestate.disappearing_completed()
     end
 
     -- update logic after tiles matched neighbours:
     self.growing_completed = function ()
         self.tiles_animation = nil
 
-        local tile_count = 0
-
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
                 tile.animated = false
                 tile.big = true
-
-                tile_count = tile_count + 1
             end
         end
 
         if self.is_deadlocked() then
-            self.mark_big_tiles()
             self.start_disappearing()
         end
 
-        self.gamestate.growing_completed(tile_count)
+        self.game.gamestate.growing_completed()
     end
 
     -- update logic after a tile has moved:
@@ -337,13 +338,15 @@ function Grid (width, height, gamestate)
             self.start_disappearing()
         end
 
-        self.gamestate.moving_completed()
+        self.game.gamestate.moving_completed()
     end
 
     -- input:
 
     -- get (x, y, tile) for the tile at the given point:
-    self.tile_at_point = function (screen, x, y)
+    self.tile_at_point = function (x, y)
+        local screen = self.game.screen
+
         local tile_x = math.floor((x - screen.grid_x) / screen.tile_size) + 1
         local tile_y = math.floor((y - screen.grid_y) / screen.tile_size) + 1
 
@@ -351,13 +354,13 @@ function Grid (width, height, gamestate)
     end
 
     -- handle input:
-    self.mousepressed = function (screen, mouse_x, mouse_y, button)
+    self.mousepressed = function (mouse_x, mouse_y, button)
         -- no move during animations:
-        if self.tiles_animation ~= nil then
+        if self.tiles_animation then
             return
         end
 
-        local x, y, tile = self.tile_at_point(screen, mouse_x, mouse_y)
+        local x, y, tile = self.tile_at_point(mouse_x, mouse_y)
 
         -- no tile or not movable:
         if tile == nil or tile.big then
@@ -373,7 +376,7 @@ function Grid (width, height, gamestate)
 
         local distance = self.tiles.count_nil_direction(x, y, direction)
 
-        -- don't move 0 pixels:
+        -- don't move 0 tiles:
         if distance == 0 then
             return
         end
@@ -382,7 +385,7 @@ function Grid (width, height, gamestate)
         self.start_moving(distance, direction)
     end
 
-    self.init(width, height, gamestate)
+    self.init(game)
     return self
 end
 

@@ -27,7 +27,7 @@ function Array2d (width, height)
         end
     end
 
-    -- getters/setters:
+    -- getters and setters:
 
     -- get a cell value:
     self.get = function (x, y)
@@ -113,7 +113,7 @@ function Array2d (width, height)
         return coroutine.wrap(iterator)
     end
 
-    -- whole-array operations:
+    -- whole array operations:
 
     -- set all the cells to a given value:
     self.fill = function (value)
@@ -227,12 +227,9 @@ function Array2d (width, height)
     self.nth_random_nil = function ()
         local positions = self.count_nil()
 
-        -- no nil positions:
-        if positions == 0 then
-            return nil, nil
+        if positions > 0 then
+            return self.nth_nil(math.random(positions))
         end
-
-        return self.nth_nil(math.random(positions))
     end
 
     self.init(width, height)

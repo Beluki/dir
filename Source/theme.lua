@@ -3,53 +3,48 @@
 -- A simple, minimalistic puzzle game.
 
 
-require 'util'
-
-
-function ThemeLight ()
+function ThemeLight (game)
     self = {}
 
     -- initialization:
-    self.init = function ()
-        self.name = "light"
+    self.init = function (game)
         self.background = { 255, 255, 255 }
         self.background_tile = { 240, 240, 240 }
         self.hud_font = { 200, 200, 200 }
 
         self.tiles = {
-            { 255,  50,  50 }, -- red
-            {  35, 217,  82 }, -- green
-            {  22, 127, 252 }, -- blue
-            { 255, 221,  47 }, -- yellow
-            { 255,  89, 220 }, -- purple
+            { R = 255, G =  50, B =  50 }, -- red
+            { R =  35, G = 217, B =  82 }, -- green
+            { R =  22, G = 127, B = 252 }, -- blue
+            { R = 255, G = 221, B =  47 }, -- yellow
+            { R = 255, G =  89, B = 220 }, -- purple
         }
     end
 
-    self.init()
+    self.init(game)
     return self
 end
 
 
-function ThemeDark ()
+function ThemeDark (game)
     self = {}
 
     -- initialization:
-    self.init = function ()
-        self.name = "dark"
+    self.init = function (game)
         self.background = { 0, 0, 0 }
         self.background_tile = { 10, 10, 10 }
         self.hud_font = { 100, 100, 100 }
 
         self.tiles = {
-            { 255,  24, 115 }, -- pink
-            {  13, 255, 242 }, -- cyan
-            { 255, 205,  25 }, -- yellow
-            { 167,  87, 171 }, -- violet
-            {  24, 255,  30 }, -- green
+            { R = 255, G =  24, B = 115 }, -- pink
+            { R =  13, G = 255, B = 242 }, -- cyan
+            { R = 255, G = 205, B =  25 }, -- yellow
+            { R = 167, G =  87, B = 171 }, -- violet
+            { R =  24, G = 255, B =  30 }, -- green
         }
     end
 
-    self.init()
+    self.init(game)
     return self
 end
 

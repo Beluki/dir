@@ -10,8 +10,6 @@ require 'game'
 function love.load ()
     math.randomseed(os.time())
 
-    love.graphics.setDefaultFilter('linear', 'linear', 0)
-
     local game = Game()
 
     -- attach callbacks:

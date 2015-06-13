@@ -3,7 +3,7 @@
 -- A simple, minimalistic puzzle game.
 
 
--- Grid tile animations:
+-- Grid animations:
 
 -- There are four animations:
 -- Tiles appearing, disappearing, growing or moving.
