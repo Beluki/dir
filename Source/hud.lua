@@ -6,6 +6,10 @@
 require 'lib/love2d'
 
 
+-- The hud displays information about the current game
+-- above the grid, including score, combo and level.
+
+
 function Hud (game)
     local self = {}
 
@@ -15,15 +19,15 @@ function Hud (game)
 
         self.base_font_size = 0
 
-        self.score_font_path = "resources/LiberationSans-Bold.ttf"
+        self.score_font_path = "resources/LiberationSans-Regular.ttf"
         self.score_font_size = 0
         self.score_font = nil
 
-        self.combo_font_path = "resources/LiberationSans-Bold.ttf"
+        self.combo_font_path = "resources/LiberationSans-Regular.ttf"
         self.combo_font_size = 0
         self.combo_font = nil
 
-        self.level_font_path = "resources/LiberationSans-Bold.ttf"
+        self.level_font_path = "resources/LiberationSans-Regular.ttf"
         self.level_font_size = 0
         self.level_font = nil
     end
@@ -50,23 +54,30 @@ function Hud (game)
         local screen = self.game.screen
         local theme = self.game.theme
 
+        -- when the base font changes, reload the fonts:
         if self.base_font_size ~= screen.hud_base_font_size then
             self.reload_fonts(screen)
         end
 
-        local hud_font_margin = screen.tile_size / 10
+        -- top margin for each text:
+        local top_margin = (screen.tile_size / 10)
 
+        -- text:
         local score_text = gamestate.score
         local score_x = screen.grid_x
-        local score_y = screen.hud_y + hud_font_margin
+        local score_y = screen.hud_y + top_margin
 
         local combo_text = gamestate.combo .. "x"
         local combo_x = screen.grid_x
-        local combo_y = screen.hud_y + (screen.hud_height / 2) + hud_font_margin
+        local combo_y = screen.hud_y + (screen.hud_height / 2) + top_margin
+
+        if gamestate.combo_score > 0 then
+            combo_text =  combo_text .. " +" .. gamestate.combo_score
+        end
 
         local level_text = "level " .. gamestate.level
         local level_x = screen.grid_x + screen.grid_width - self.level_font:getWidth(level_text)
-        local level_y = screen.hud_y + (screen.hud_height / 2) - hud_font_margin
+        local level_y = screen.hud_y + (screen.hud_height / 2) - top_margin
 
         love2d.draw_text(score_text, score_x, score_y, theme.hud_font, self.score_font)
         love2d.draw_text(combo_text, combo_x, combo_y, theme.hud_font, self.combo_font)

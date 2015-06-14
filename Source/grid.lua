@@ -265,43 +265,56 @@ function Grid (game)
     self.appearing_completed = function ()
         self.tiles_animation = nil
 
+        local tile_count = 0
+
         for x, y, tile in self.tiles.iter_not_nil() do
-            tile.animated = false
+            if tile.animated then
+                tile.animated = false
+                tile_count = tile_count + 1
+            end
         end
 
-        self.game.gamestate.appearing_completed()
+        self.game.gamestate.appearing_completed(tile_count)
     end
 
     -- update logic after tiles disappeared:
     self.disappearing_completed = function ()
         self.tiles_animation = nil
 
+        local tile_count = 0
+
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
                 tile.animated = false
+                tile_count = tile_count + 1
+
                 self.tiles.set(x, y, nil)
             end
         end
 
-        self.game.gamestate.disappearing_completed()
+        self.game.gamestate.disappearing_completed(tile_count)
     end
 
     -- update logic after tiles matched neighbours:
     self.growing_completed = function ()
         self.tiles_animation = nil
 
+        local tile_count = 0
+
         for x, y, tile in self.tiles.iter_not_nil() do
             if tile.animated then
                 tile.animated = false
+                tile_count = tile_count + 1
+
                 tile.big = true
             end
         end
 
+        self.game.gamestate.growing_completed(tile_count)
+
         if self.is_deadlocked() then
             self.start_disappearing()
         end
-
-        self.game.gamestate.growing_completed()
     end
 
     -- update logic after a tile has moved:
