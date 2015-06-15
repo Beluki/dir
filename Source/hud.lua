@@ -22,6 +22,7 @@ function Hud (game)
         self.score_font_path = "resources/LiberationSans-Regular.ttf"
         self.score_font_size = 0
         self.score_font = nil
+        self.score = 0
 
         self.combo_font_path = "resources/LiberationSans-Regular.ttf"
         self.combo_font_size = 0
@@ -63,7 +64,7 @@ function Hud (game)
         local top_margin = (screen.tile_size / 10)
 
         -- text:
-        local score_text = gamestate.score
+        local score_text = self.score
         local score_x = screen.grid_x
         local score_y = screen.hud_y + top_margin
 
@@ -84,8 +85,23 @@ function Hud (game)
         love2d.draw_text(level_text, level_x, level_y, theme.hud_font, self.level_font)
     end
 
+    self.restart = function ()
+            self.score = 0
+    end
+
+    self.update_score = function (dt)
+        local gamestate = self.game.gamestate
+
+        if self.score < gamestate.score then
+            local difference = math.max(gamestate.score - self.score, 100)
+
+            self.score = math.min(self.score + math.floor(difference * 10 * dt), gamestate.score)
+        end
+    end
+
     -- update logic:
     self.update = function (dt)
+        self.update_score(dt)
     end
 
     -- handle input:

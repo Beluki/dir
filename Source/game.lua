@@ -11,6 +11,7 @@ require 'grid'
 require 'hud'
 require 'screen'
 require 'theme'
+require 'util'
 
 
 -- The Game object glues all the other components together
@@ -30,16 +31,18 @@ function Game ()
         self.hud = Hud(self)
         self.grid = Grid(self)
         self.screen = Screen(self)
-        self.theme = ThemeLight(self)
+        self.theme = Theme1(self)
 
         self.resize()
         self.restart()
     end
 
-    -- Restart the game:
+    -- restart the game:
     self.restart = function ()
+        self.hud.restart()
         self.grid.tiles.clear()
         self.gamestate.restart()
+        self.theme.restart()
     end
 
     -- callbacks:
@@ -69,7 +72,13 @@ function Game ()
     -- handle keyboard input:
     self.keypressed = function (key)
         if key == 'escape' then
-            love2d_event_quit()
+            love2d.event_quit()
+
+        elseif key == '1' then
+            self.theme = Theme1(self)
+
+        elseif key == '2' then
+            self.theme = Theme2(self)
 
         elseif key =='f' then
             love2d.window_toggle_fullscreen()
