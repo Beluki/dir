@@ -4,7 +4,7 @@
 
 
 -- Levels go from 1 to N with specific rules for the first six.
--- After level 6 the rules are the same, because it is the sweep
+-- After level 6 the rules are the same, because it is the sweet
 -- spot between "hard enough" and "impossible".
 
 
@@ -56,48 +56,53 @@ function GameState (game)
     -- initialization:
     self.init = function (game)
         self.game = game
-
         self.score = 0
-        self.combo = 0
-        self.level = 0
 
-        -- current combo score:
+        -- current combo multiplier, total tiles, and score:
+        self.combo = 0
+        self.combo_tiles = 0
         self.combo_score = 0
 
-        -- pending matches to advance level:
+        -- level number and ruleset:
+        self.level = 0
+        self.rules = nil
+
+        -- base match value, pending matches to advance level:
+        self.match_value = 0
         self.matches_to_next_level = 0
-
-        -- current level rules:
-        self.tiles_after_clear = 0
-        self.tiles_after_combo = 0
-        self.tile_colors = 0
-    end
-
-    -- load the rules for the current level:
-    self.load_level = function ()
-        local level = KnownLevels[self.level]
-
-        if level then
-            self.tiles_after_clear = level.tiles_after_clear
-            self.tiles_after_combo = level.tiles_after_combo
-            self.tile_colors = level.tile_colors
-        end
     end
 
     -- restart the game:
     self.restart = function ()
         self.score = 0
-        self.combo = 1
-        self.level = 1
 
-        -- current combo score:
+        -- current combo multiplier, total tiles, and score:
+        self.combo = 1
+        self.combo_tiles = 0
         self.combo_score = 0
 
-        -- pending matches to advance level:
+        -- level number and ruleset:
+        self.level = 1
+        self.rules = self.load_rules(self.level)
+
+        -- base match value, pending matches to advance level:
+        self.match_value = 10
         self.matches_to_next_level = 25
 
-        self.load_level()
-        self.game.grid.add_random_tiles(self.tile_colors, self.tiles_after_clear)
+        -- start game:
+        self.game.grid.add_random_tiles(self.rules.tile_colors, self.rules.tiles_after_clear)
+    end
+
+    -- load the rules for the current level:
+    self.load_rules = function ()
+        local index = math.min(self.level, #KnownLevels)
+
+        return KnownLevels[index]
+    end
+
+    -- decide how many points the current combo tiles are worth:
+    self.calculate_combo_score = function ()
+        return self.match_value * self.combo_tiles * self.combo * self.level
     end
 
     -- update when new tiles have been added:
@@ -109,24 +114,27 @@ function GameState (game)
         local grid = self.game.grid
 
         -- clear: add bonus and continue combo:
+        -- (the bonus is the score for the total tiles in the combo again)
         if grid.is_empty() then
-            self.combo_score = (self.combo_score * (self.level + 1))
-            grid.add_random_tiles(self.tile_colors, self.tiles_after_clear)
+            self.combo_score = self.combo_score + self.calculate_combo_score()
+            grid.add_random_tiles(self.rules.tile_colors, self.rules.tiles_after_clear)
 
         -- combo finished:
         else
             self.score = self.score + self.combo_score
 
             self.combo = 1
+            self.combo_tiles = 0
             self.combo_score = 0
 
-            grid.add_random_tiles(self.tile_colors, self.tiles_after_combo)
+            grid.add_random_tiles(self.rules.tile_colors, self.rules.tiles_after_combo)
 
             -- advance level as needed:
             if self.matches_to_next_level <= 0 then
                 self.matches_to_next_level = 25
+
                 self.level = self.level + 1
-                self.load_level()
+                self.rules = self.load_rules()
             end
         end
     end
@@ -135,11 +143,8 @@ function GameState (game)
     self.growing_completed = function (tile_count)
         local grid = self.game.grid
 
-        -- scoring:
-        local tile_value = 10 + (25 - self.matches_to_next_level)
-        local move_score = tile_value * tile_count * self.level * self.combo
-
-        self.combo_score = self.combo_score + move_score
+        self.combo_tiles = self.combo_tiles + tile_count
+        self.combo_score = self.combo_score + self.calculate_combo_score()
         self.combo = self.combo + 1
 
         self.matches_to_next_level = self.matches_to_next_level - 1
