@@ -3,7 +3,8 @@
 -- A simple, minimalistic puzzle game.
 
 
-require 'util'
+require 'game/constant'
+require 'game/util'
 
 
 -- Since all the graphics are vector-based and the animations work with percentages
@@ -53,7 +54,6 @@ function Screen (game)
     self.resize = function (window_width, window_height)
         -- hud size in tiles:
         local hud_tile_height = 1
-        local hud_tile_width = window_width
 
         -- margin on the sides of the grid:
         local grid_margin_left = 0.10

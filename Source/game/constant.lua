@@ -2,9 +2,11 @@
 -- dir.
 -- A simple, minimalistic puzzle game.
 
+
 -- Small tiles size percentage with respect to big tiles:
 TILE_SIZE_SMALL_PERCENTAGE = 60
 TILE_SIZE_SMALL_GROW_PERCENTAGE = (100 / TILE_SIZE_SMALL_PERCENTAGE) * 100
+
 
 -- Movement coordinates:
 DIRECTIONS = {
@@ -13,6 +15,7 @@ DIRECTIONS = {
     DOWN  = { x =  0, y =  1 },
     LEFT  = { x = -1, y =  0 },
 }
+
 
 -- Mouse button -> movement coordinate:
 MOUSE_DIRECTIONS = {

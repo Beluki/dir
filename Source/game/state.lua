@@ -8,7 +8,7 @@
 -- spot between "hard enough" and "impossible".
 
 
-local KnownLevels = {
+local Levels = {
     -- Level 1
     {
         tiles_after_clear = 9,
@@ -50,7 +50,7 @@ local KnownLevels = {
 
 
 -- Create a new gamestate object:
-function GameState (game)
+function State (game)
     local self = {}
 
     -- initialization:
@@ -72,7 +72,7 @@ function GameState (game)
         self.matches_to_next_level = 0
     end
 
-    -- restart the game:
+    -- restart the state:
     self.restart = function ()
         self.score = 0
 
@@ -95,9 +95,9 @@ function GameState (game)
 
     -- load the rules for the current level:
     self.load_rules = function ()
-        local index = math.min(self.level, #KnownLevels)
+        local index = math.min(self.level, #Levels)
 
-        return KnownLevels[index]
+        return Levels[index]
     end
 
     -- decide how many points the current combo tiles are worth:

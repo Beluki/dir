@@ -3,7 +3,7 @@
 -- A simple, minimalistic puzzle game.
 
 
-require 'game'
+require 'game/game'
 
 
 -- Initialization:
@@ -12,7 +12,6 @@ function love.load ()
 
     local game = Game()
 
-    -- attach callbacks:
     love.draw = game.draw
     love.update = game.update
     love.resize = game.resize

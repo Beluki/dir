@@ -5,13 +5,11 @@
 
 require 'lib/love2d'
 
-require 'constant'
-require 'gamestate'
-require 'grid'
-require 'hud'
-require 'screen'
-require 'theme'
-require 'util'
+require 'game/grid'
+require 'game/hud'
+require 'game/screen'
+require 'game/state'
+require 'game/theme'
 
 
 -- The Game object glues all the other components together
@@ -27,11 +25,11 @@ function Game ()
         self.grid_width = 5
         self.grid_height = 5
 
-        self.gamestate = GameState(self)
-        self.hud = Hud(self)
         self.grid = Grid(self)
+        self.hud = Hud(self)
         self.screen = Screen(self)
-        self.theme = Theme1(self)
+        self.state = State(self)
+        self.theme = ThemeLight(self)
 
         self.resize()
         self.restart()
@@ -39,9 +37,9 @@ function Game ()
 
     -- restart the game:
     self.restart = function ()
+        self.grid.restart()
         self.hud.restart()
-        self.grid.tiles.clear()
-        self.gamestate.restart()
+        self.state.restart()
         self.theme.restart()
     end
 
@@ -51,14 +49,14 @@ function Game ()
     self.draw = function ()
         love2d.graphics_set_background_color(self.theme.background)
 
-        self.hud.draw()
         self.grid.draw()
+        self.hud.draw()
     end
 
     -- update the game logic:
     self.update = function (dt)
-        self.hud.update(dt)
         self.grid.update(dt)
+        self.hud.update(dt)
     end
 
     -- update the element sizes and positions on resize:
@@ -73,12 +71,6 @@ function Game ()
     self.keypressed = function (key)
         if key == 'escape' then
             love2d.event_quit()
-
-        elseif key == '1' then
-            self.theme = Theme1(self)
-
-        elseif key == '2' then
-            self.theme = Theme2(self)
 
         elseif key =='f' then
             love2d.window_toggle_fullscreen()
@@ -101,10 +93,6 @@ function Game ()
 
     -- given a point in the window, determine which game component contains it:
     self.point_to_component = function (x, y)
-        if self.screen.point_inside_hud(x, y) then
-            return self.hud
-        end
-
         if self.screen.point_inside_grid(x, y) then
             return self.grid
         end

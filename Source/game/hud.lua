@@ -51,8 +51,8 @@ function Hud (game)
 
     -- draw the hud:
     self.draw = function ()
-        local gamestate = self.game.gamestate
         local screen = self.game.screen
+        local state = self.game.state
         local theme = self.game.theme
 
         -- when the base font changes, reload the fonts:
@@ -65,18 +65,19 @@ function Hud (game)
 
         -- text:
         local score_text = self.score
+        local combo_text = state.combo .. "x"
+        local level_text = "level " .. state.level
+
+        if state.combo_score > 0 then
+            combo_text =  combo_text .. " +" .. state.combo_score
+        end
+
         local score_x = screen.grid_x
         local score_y = screen.hud_y + top_margin
 
-        local combo_text = gamestate.combo .. "x"
         local combo_x = screen.grid_x
         local combo_y = screen.hud_y + (screen.hud_height / 2) + top_margin
 
-        if gamestate.combo_score > 0 then
-            combo_text =  combo_text .. " +" .. gamestate.combo_score
-        end
-
-        local level_text = "level " .. gamestate.level
         local level_x = screen.grid_x + screen.grid_width - self.level_font:getWidth(level_text)
         local level_y = screen.hud_y + (screen.hud_height / 2) - top_margin
 
@@ -86,16 +87,16 @@ function Hud (game)
     end
 
     self.restart = function ()
-            self.score = 0
+        self.score = 0
     end
 
     self.update_score = function (dt)
-        local gamestate = self.game.gamestate
+        local state = self.game.state
 
-        if self.score < gamestate.score then
-            local difference = math.max(gamestate.score - self.score, 100)
+        if self.score < state.score then
+            local difference = math.max(state.score - self.score, 100)
 
-            self.score = math.min(self.score + math.floor(difference * 10 * dt), gamestate.score)
+            self.score = math.min(self.score + math.floor(difference * 10 * dt), state.score)
         end
     end
 

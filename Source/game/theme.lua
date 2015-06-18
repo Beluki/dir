@@ -3,10 +3,10 @@
 -- A simple, minimalistic puzzle game.
 
 
-require 'util'
+require 'game/util'
 
 
-function Theme1 (game)
+function ThemeLight (game)
     self = {}
 
     -- initialization:
@@ -34,7 +34,7 @@ function Theme1 (game)
 end
 
 
-function Theme2 (game)
+function ThemeDark (game)
     self = {}
 
     -- initialization:
