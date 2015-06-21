@@ -29,7 +29,7 @@ function Game ()
         self.hud = Hud(self)
         self.screen = Screen(self)
         self.state = State(self)
-        self.theme = ThemeLight(self)
+        self.theme = Theme(self)
 
         self.resize()
         self.restart()
@@ -72,11 +72,24 @@ function Game ()
         if key == 'escape' then
             love2d.event_quit()
 
+        elseif key == '1' then
+            self.theme.load_theme(1)
+
+        elseif key == '2' then
+            self.theme.load_theme(2)
+
+        elseif key == '3' then
+            self.theme.load_theme(3)
+
         elseif key =='f' then
             love2d.window_toggle_fullscreen()
 
         elseif key == 'r' then
             self.restart()
+
+        elseif key == 't' then
+            self.theme.load_next_theme()
+
         end
     end
 

@@ -11,3 +11,15 @@ function point_inside_rect (x, y, rect_x, rect_y, rect_width, rect_height)
        and (y <= rect_y + rect_height)
 end
 
+
+-- Sort an array in-place randomly:
+function shuffle (array)
+    local length = #array
+
+    for index1 = 1, length do
+        local index2 = math.random(length)
+
+        array[index1], array[index2] = array[index2], array[index1]
+    end
+end
+
