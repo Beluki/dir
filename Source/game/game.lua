@@ -84,7 +84,7 @@ function Game ()
     self.mousepressed = function (x, y, button)
         local component = self.point_to_component(x, y)
 
-        if component then
+        if component ~= nil then
             component.mousepressed(x, y, button)
         end
     end

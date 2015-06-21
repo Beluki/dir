@@ -59,17 +59,17 @@ function State (game)
         self.score = 0
 
         -- current combo multiplier, total tiles, and score:
-        self.combo = 0
+        self.combo = 1
         self.combo_tiles = 0
         self.combo_score = 0
 
         -- level number and ruleset:
-        self.level = 0
-        self.rules = nil
+        self.level = 1
+        self.rules = self.load_rules()
 
         -- base match value, pending matches to advance level:
-        self.match_value = 0
-        self.matches_to_next_level = 0
+        self.match_value = 10
+        self.matches_to_next_level = 25
     end
 
     -- restart the state:
@@ -83,7 +83,7 @@ function State (game)
 
         -- level number and ruleset:
         self.level = 1
-        self.rules = self.load_rules(self.level)
+        self.rules = self.load_rules()
 
         -- base match value, pending matches to advance level:
         self.match_value = 10
@@ -123,13 +123,15 @@ function State (game)
         else
             self.score = self.score + self.combo_score
 
-            self.combo = 1
             self.combo_tiles = 0
             self.combo_score = 0
+            self.combo = 1
 
+            -- add the new tiles before advancing level, giving the player a last turn
+            -- to make a combo with the current rules:
             grid.add_random_tiles(self.rules.tile_colors, self.rules.tiles_after_combo)
 
-            -- advance level as needed:
+            -- advance level:
             if self.matches_to_next_level <= 0 then
                 self.matches_to_next_level = 25
 

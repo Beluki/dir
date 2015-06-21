@@ -26,14 +26,12 @@ function Screen (game)
         self.tile_size = 0
         self.tile_size_small = 0
 
-        self.hud_base_font_size = 0
+        self.hud_font_size = 0
         self.hud_width = 0
         self.hud_height = 0
         self.hud_x = 0
         self.hud_y = 0
 
-        self.grid_tile_width = self.game.grid_width
-        self.grid_tile_height = self.game.grid_height
         self.grid_width = 0
         self.grid_height = 0
         self.grid_x = 0
@@ -52,10 +50,13 @@ function Screen (game)
 
     -- recalculate sizes and positions on a window resize:
     self.resize = function (window_width, window_height)
-        -- hud size in tiles:
+        -- element sizes (in tiles):
         local hud_tile_height = 1
 
-        -- margin on the sides of the grid:
+        local grid_tile_width = self.game.grid_width
+        local grid_tile_height = self.game.grid_height
+
+        -- margin on each side of the grid (in tiles):
         local grid_margin_left = 0.10
         local grid_margin_right = 0.10
         local grid_margin_top = hud_tile_height
@@ -64,27 +65,31 @@ function Screen (game)
         local grid_width_margin = grid_margin_left + grid_margin_right
         local grid_height_margin = grid_margin_top + grid_margin_bottom
 
-        -- calculate the minimum tile size that can fill the width or height:
-        local width_max_tile = window_width / (self.grid_tile_width + grid_width_margin)
-        local height_max_tile = window_height / (self.grid_tile_height + grid_height_margin)
+        -- calculate the minimum tile size (in pixels) that can fill the window
+        -- width or height including the margin on each side:
+        local width_max_tile = window_width / (grid_tile_width + grid_width_margin)
+        local height_max_tile = window_height / (grid_tile_height + grid_height_margin)
 
         self.tile_size = math.min(width_max_tile, height_max_tile)
         self.tile_size_small = self.tile_size * (TILE_SIZE_SMALL_PERCENTAGE / 100)
 
-        self.hud_base_font_size = self.tile_size
+        -- element sizes (in pixels):
+        self.hud_font_size = self.tile_size
         self.hud_width = window_width
-        self.hud_height = self.tile_size
+        self.hud_height = self.tile_size * hud_tile_height
 
-        self.grid_width = self.tile_size * self.grid_tile_width
-        self.grid_height = self.tile_size * self.grid_tile_height
+        self.grid_width = self.tile_size * grid_tile_width
+        self.grid_height = self.tile_size * grid_tile_height
 
-        -- hud at the top:
+        -- element positions (in pixels):
         self.hud_x = 0
         self.hud_y = 0
 
-        -- grid centered below the hud:
-        self.grid_x = (window_width / 2) - (self.grid_width / 2)
-        self.grid_y = self.hud_height + ((window_height - self.hud_height) / 2) - (self.grid_height / 2)
+        local grid_center_x = window_width / 2
+        local grid_center_y = self.hud_height + ((window_height - self.hud_height) / 2)
+
+        self.grid_x = grid_center_x - (self.grid_width / 2)
+        self.grid_y = grid_center_y - (self.grid_height / 2)
     end
 
     self.init(game)

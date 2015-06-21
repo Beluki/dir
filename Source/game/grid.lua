@@ -13,12 +13,25 @@ require 'lib/love2d'
 -- Tiles appearing, disappearing, growing or moving.
 
 -- The implementations are tween-like and work with percentages.
--- The idea is to keep animation logic separated from the grid semantics
+-- The idea is to keep animation logic separated from the grid
 -- and independent enough to be easy to understand in isolation.
 
 -- One of them (or none) is active at any point during the gameplay
 -- so there is a reset() method to reuse an animation with different
 -- values, instead of creating a new object each time.
+
+-- The animations expose the following properties, which are used
+-- by the grid to determine how to draw each animated tile:
+
+-- .size        -- size percentage
+-- .alpha       -- alpha percentage
+-- .offset_x    -- horizontal position (in tiles)
+-- .offset_y    -- vertical position (in tiles)
+
+-- As well as:
+
+-- .finished    -- whether the animation has completed
+-- .running     -- whether the animation is being updated (or paused)
 
 
 -- A "snap into place" animation for appearing tiles:
@@ -285,8 +298,8 @@ local function TilesMoving ()
     -- update the animation logic:
     self.update = function (dt)
         if self.running then
-            self.offset_x = self.offset_x + (self.direction.x * (self.speed * dt))
-            self.offset_y = self.offset_y + (self.direction.y * (self.speed * dt))
+            self.offset_x = self.offset_x + (self.direction.x * self.speed * dt)
+            self.offset_y = self.offset_y + (self.direction.y * self.speed * dt)
 
             self.moved = math.abs(self.offset_x) + math.abs(self.offset_y)
 
@@ -327,7 +340,6 @@ end
 --   .big determines whether the tile has matched neighbour tiles.
 --   .animated is true when the tile is subject to the current grid animation.
 
-
 -- Create a new tile:
 local function Tile (color)
     local self = {}
@@ -345,9 +357,8 @@ end
 
 
 -- This is the grid where gameplay takes place.
--- It mostly cares about animations, calling game.state to handle
+-- It cares about animations, calling game.state to handle
 -- scoring and leveling instead.
-
 
 -- Create a new grid:
 function Grid (game)
@@ -371,13 +382,13 @@ function Grid (game)
         self.moving.oncomplete = self.moving_completed
     end
 
-    -- restart:
+    -- restart the grid:
     self.restart = function ()
         self.tiles.clear()
         self.tiles_animation = nil
     end
 
-    -- marking tiles for animation:
+    -- marking/unmarking tiles for animation:
 
     -- set .animated = true for all the big tiles
     -- and return the count:
@@ -413,6 +424,7 @@ function Grid (game)
     end
 
     -- concise animation methods:
+    -- (those also make sure reset() is called)
 
     -- start the appearing animation:
     -- (target tiles are expected to be marked with tile.animated = true)
@@ -423,7 +435,7 @@ function Grid (game)
     end
 
     -- start the disappearing animation:
-    -- (marks big tiles as needed)
+    -- (marks tiles as needed)
     self.start_disappearing = function ()
         self.tiles_animation = self.disappearing
 
@@ -460,7 +472,9 @@ function Grid (game)
         local x, y = self.tiles.nth_random_nil()
 
         if x and y then
-            local tile = Tile(math.random(colors))
+            local color = math.random(colors)
+            local tile = Tile(color)
+
             self.tiles.set(x, y, tile)
 
             tile.animated = true
@@ -475,11 +489,24 @@ function Grid (game)
         end
     end
 
+    -- add random tiles until a percentage of the entire grid is filled:
+    self.add_random_tiles_filling = function (colors, percentage)
+        local total = self.tiles.width * self.tiles.height
+
+        local used = self.tiles.count_not_nil()
+        local required = math.floor(percentage * (total / 100))
+
+        while used < required do
+            self.add_random_tile(colors)
+            used = used + 1
+        end
+    end
+
     -- checking the grid state:
 
-    -- determine whether there are no empty positions:
+    -- determine whether there are no free positions:
     self.is_full = function ()
-       return self.tiles.count_nil() == 0
+        return self.tiles.count_nil() == 0
     end
 
     -- determine whether there are no tiles:
@@ -491,8 +518,8 @@ function Grid (game)
     self.is_deadlocked = function ()
         for x, y, tile in self.tiles.iter_not_nil() do
             if not tile.big then
-                for neighbour_x, neighbour_y, neighbour in self.tiles.iter_neighbours(x, y) do
-                    if neighbour == nil then
+                for neighbour_x, neighbour_y, neighbour_tile in self.tiles.iter_neighbours(x, y) do
+                    if neighbour_tile == nil then
                         return false
                     end
                 end
@@ -507,7 +534,7 @@ function Grid (game)
     -- draw the background squares:
     self.draw_background = function ()
         local screen = self.game.screen
-        local theme = self.game.theme
+        local color = self.game.theme.background_tile
 
         local offset = (screen.tile_size - screen.tile_size_small) / 2
 
@@ -515,11 +542,11 @@ function Grid (game)
             local screen_x = screen.grid_x + ((x - 1) * screen.tile_size) + offset
             local screen_y = screen.grid_y + ((y - 1) * screen.tile_size) + offset
 
-            love2d.draw_square(screen_x, screen_y, screen.tile_size_small, theme.background_tile)
+            love2d.draw_square(screen_x, screen_y, screen.tile_size_small, color)
         end
     end
 
-    -- draw a tile in the (x, y) grid coordinates:
+    -- draw a tile in the (x, y) coordinates:
     self.draw_tile = function (x, y, tile)
         local screen = self.game.screen
         local color = self.game.theme.tiles[tile.color]
@@ -572,7 +599,7 @@ function Grid (game)
         self.draw_background()
         self.draw_static_tiles()
 
-        if self.tiles_animation then
+        if self.tiles_animation ~= nil then
             self.draw_animated_tiles()
         end
     end
@@ -581,7 +608,7 @@ function Grid (game)
 
     -- update the grid logic:
     self.update = function (dt)
-        if self.tiles_animation then
+        if self.tiles_animation ~= nil then
             self.tiles_animation.update(dt)
         end
     end
@@ -599,7 +626,6 @@ function Grid (game)
             end
         end
 
-        -- update state:
         self.game.state.appearing_completed(tile_count)
     end
 
@@ -613,12 +639,10 @@ function Grid (game)
             if tile.animated then
                 tile.animated = false
                 tile_count = tile_count + 1
-
                 self.tiles.set(x, y, nil)
             end
         end
 
-        -- update state:
         self.game.state.disappearing_completed(tile_count)
     end
 
@@ -632,12 +656,11 @@ function Grid (game)
             if tile.animated then
                 tile.animated = false
                 tile_count = tile_count + 1
-
                 tile.big = true
             end
         end
 
-        -- update state:
+        -- update state before chaining other animations:
         self.game.state.growing_completed(tile_count)
 
         -- no moves after growing, remove big tiles:
@@ -669,7 +692,7 @@ function Grid (game)
         self.tiles.set(old_x, old_y, nil)
         self.tiles.set(new_x, new_y, moved)
 
-        -- update state:
+        -- update state before chaining other animations:
         self.game.state.moving_completed()
 
         -- when there are matches: start growing, otherwise: make big tiles disappear:
@@ -727,6 +750,7 @@ function Grid (game)
         tile.animated = true
         self.start_moving(distance, direction)
     end
+
 
     self.init(game)
     return self

@@ -3,9 +3,6 @@
 -- A simple, minimalistic puzzle game.
 
 
-require 'game/util'
-
-
 function ThemeLight (game)
     self = {}
 
@@ -26,7 +23,6 @@ function ThemeLight (game)
 
     -- shuffle the tile colors on restart:
     self.restart = function ()
-        shuffle(self.tiles)
     end
 
     self.init(game)
@@ -54,7 +50,6 @@ function ThemeDark (game)
 
     -- shuffle the tile colors on restart:
     self.restart = function ()
-        shuffle(self.tiles)
     end
 
     self.init(game)
