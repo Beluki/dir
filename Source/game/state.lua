@@ -82,7 +82,7 @@ function State (game)
         self.combo_score = 0
 
         -- level number and ruleset:
-        self.level = 20
+        self.level = 1
         self.rules = self.load_rules()
 
         -- base match value, pending matches to advance level:

@@ -7,6 +7,7 @@ require 'lib/love2d'
 
 require 'game/grid'
 require 'game/hud'
+require 'game/menu'
 require 'game/screen'
 require 'game/state'
 require 'game/theme'
@@ -27,6 +28,7 @@ function Game ()
 
         self.grid = Grid(self)
         self.hud = Hud(self)
+        self.menu = Menu(self)
         self.screen = Screen(self)
         self.state = State(self)
         self.theme = Theme(self)
@@ -51,6 +53,7 @@ function Game ()
 
         self.grid.draw()
         self.hud.draw()
+        self.menu.draw()
     end
 
     -- update the game logic:
@@ -108,6 +111,10 @@ function Game ()
     self.point_to_component = function (x, y)
         if self.screen.point_inside_grid(x, y) then
             return self.grid
+        end
+
+        if self.screen.point_inside_menu(x, y) then
+            return self.menu
         end
     end
 
