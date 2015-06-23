@@ -93,7 +93,7 @@ function Screen (game)
         self.grid_width = self.tile_size * grid_tile_width
         self.grid_height = self.tile_size * grid_tile_height
 
-        self.menu_font_size = self.tile_size / 2
+        self.menu_font_size = self.tile_size * menu_tile_height
         self.menu_width = window_width
         self.menu_height = self.tile_size * menu_tile_height
 

@@ -15,9 +15,10 @@ end
 -- Sort an array in-place randomly:
 function shuffle (array)
     local length = #array
+    local random = math.random
 
     for index1 = 1, length do
-        local index2 = math.random(length)
+        local index2 = random(length)
 
         array[index1], array[index2] = array[index2], array[index1]
     end

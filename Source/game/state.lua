@@ -9,38 +9,38 @@
 
 
 local Levels = {
-    -- Level 1
+    -- level 1
     {
         tiles_after_clear = 9,
         tiles_after_combo = 5,
         tile_colors = 2,
     },
-    -- Level 2
+    -- level 2
     {
         tiles_after_clear = 8,
         tiles_after_combo = 5,
         tile_colors = 3,
 
     },
-    -- Level 3
+    -- level 3
     {
         tiles_after_clear = 7,
         tiles_after_combo = 5,
         tile_colors = 4,
     },
-    -- Level 4
+    -- level 4
     {
         tiles_after_clear = 6,
         tiles_after_combo = 5,
         tile_colors = 5,
     },
-    -- Level 5
+    -- level 5
     {
         tiles_after_clear = 5,
         tiles_after_combo = 6,
         tile_colors = 5,
     },
-    -- Level 6
+    -- level 6...
     {
         tiles_after_clear = 5,
         tiles_after_combo = 7,

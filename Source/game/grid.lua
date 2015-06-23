@@ -663,7 +663,7 @@ function Grid (game)
         -- update state before chaining other animations:
         self.game.state.growing_completed(tile_count)
 
-        -- no moves after growing, remove big tiles:
+        -- no moves available after growing, remove big tiles:
         if self.is_deadlocked() then
             self.start_disappearing()
         end

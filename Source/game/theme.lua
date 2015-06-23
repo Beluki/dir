@@ -9,10 +9,10 @@ require 'game/util'
 -- Themes:
 
 local theme1 = {
-    name = 'light',
     background = { 255, 255, 255 },
     background_tile = { 235, 235, 235 },
     hud_font = { 200, 200, 200 },
+    menu_font = { 200, 200, 200 },
 
     tiles = {
         { R = 255, G =  70, B =  70 }, -- red
@@ -24,10 +24,10 @@ local theme1 = {
 }
 
 local theme2 = {
-    name = 'dark',
     background = { 20, 20, 20 },
     background_tile = { 35, 35, 35 },
     hud_font = { 160, 160, 160 },
+    menu_font = { 160, 160, 160 },
 
     tiles = {
         { R = 255, G =  70, B =  70 }, -- red
@@ -39,17 +39,16 @@ local theme2 = {
 }
 
 local theme3 = {
-    name = 'gray',
     background = { 245, 240, 236 },
     background_tile = { 225, 220, 210 },
     hud_font = { 195, 190, 186 },
+    menu_font = { 195, 190, 186 },
 
     tiles = {
         { R = 255, G =  50, B = 102 }, -- red
         { R = 136, G = 225, B =  58 }, -- green
         { R = 125, G = 129, B = 192 }, -- steel blue
         { R = 255, G = 162, B =  46 }, -- orange
-        --{ R = 255, G = 220, B =  30 }, -- yellow
         { R = 250, G = 215, B =  25 }, -- yellow
     }
 }
@@ -67,6 +66,7 @@ function Theme (game)
         self.background = nil
         self.background_tile = nil
         self.hud_font = nil
+        self.menu_font = nil
         self.tiles = nil
 
         self.theme_index = 1
@@ -75,9 +75,7 @@ function Theme (game)
 
     -- on restart, shuffle the current theme tile colors:
     self.restart = function ()
-        local theme = themes[self.theme_index]
-
-        shuffle(theme.tiles)
+        shuffle(self.tiles)
     end
 
     -- load a given theme:
@@ -87,6 +85,7 @@ function Theme (game)
         self.background = theme.background
         self.background_tile = theme.background_tile
         self.hud_font = theme.hud_font
+        self.menu_font = theme.menu_font
         self.tiles = theme.tiles
 
         self.theme_index = index

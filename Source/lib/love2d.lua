@@ -65,7 +65,7 @@ love2d.window_toggle_fullscreen = function ()
     love.window.setFullscreen(not love.window.getFullscreen())
 end
 
--- Determine whether we are actually in full screen mode:
+-- Determine whether we are in full screen mode:
 love2d.window_is_fullscreen = function ()
     return love.window.getFullscreen()
 end

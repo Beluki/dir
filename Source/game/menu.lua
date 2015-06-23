@@ -45,6 +45,10 @@ function Menu (game)
         self.button1 = MenuButton()
         self.button2 = MenuButton()
         self.button3 = MenuButton()
+
+        self.button1.mousepressed = self.button1_mousepressed
+        self.button2.mousepressed = self.button2_mousepressed
+        self.button3.mousepressed = self.button3_mousepressed
     end
 
     -- reloading sizes:
@@ -62,15 +66,15 @@ function Menu (game)
     -- reload the button sizes:
     self.reload_buttons = function ()
         local screen = self.game.screen
-        local theme = self.game.theme
 
         -- button text:
         self.button1.text = "restart"
-        self.button2.text = "screen"
+        self.button2.text = "full screen"
         self.button3.text = "theme"
 
+        -- change button 2 text as needed:
         if love2d.window_is_fullscreen() then
-            self.button2.text = "window"
+            self.button2.text = "windowed"
         end
 
         -- button sizes:
@@ -83,17 +87,20 @@ function Menu (game)
         self.button3.width = self.text_font:getWidth(self.button3.text)
         self.button3.height = self.text_font:getHeight(self.button3.text)
 
+        -- button positions:
         local top_margin = screen.tile_size / 10
 
-        -- button positions:
-        self.button1.x = screen.grid_x
-        self.button1.y = screen.menu_y + top_margin
+        local base_x = screen.grid_x
+        local base_y = screen.menu_y + top_margin
 
-        self.button2.x = screen.grid_x + (screen.grid_width / 2) - (self.button2.width / 2)
-        self.button2.y = screen.menu_y + top_margin
+        self.button1.x = base_x
+        self.button1.y = base_y
 
-        self.button3.x = screen.grid_x + screen.grid_width - self.button3.width
-        self.button3.y = screen.menu_y + top_margin
+        self.button2.x = base_x + (screen.grid_width / 2) - (self.button2.width / 2)
+        self.button2.y = base_y
+
+        self.button3.x = base_x + screen.grid_width - self.button3.width
+        self.button3.y = base_y
     end
 
     -- drawing:
@@ -101,7 +108,6 @@ function Menu (game)
     -- draw the menu:
     self.draw = function ()
         local screen = self.game.screen
-        local state = self.game.state
         local theme = self.game.theme
 
         -- when the base font changes, reload the fonts:
@@ -113,14 +119,14 @@ function Menu (game)
         self.reload_buttons()
 
         -- draw:
-        love2d.draw_text(self.button1.text, self.button1.x, self.button1.y, theme.hud_font, self.text_font)
-        love2d.draw_text(self.button2.text, self.button2.x, self.button2.y, theme.hud_font, self.text_font)
-        love2d.draw_text(self.button3.text, self.button3.x, self.button3.y, theme.hud_font, self.text_font)
+        love2d.draw_text(self.button1.text, self.button1.x, self.button1.y, theme.menu_font, self.text_font)
+        love2d.draw_text(self.button2.text, self.button2.x, self.button2.y, theme.menu_font, self.text_font)
+        love2d.draw_text(self.button3.text, self.button3.x, self.button3.y, theme.menu_font, self.text_font)
     end
 
     -- input:
 
-    -- determine if a point is inside a given menu button:
+    -- determine if a point is inside a menu button:
     self.point_inside_button = function (x, y, button)
         return point_inside_rect(x, y, button.x, button.y, button.width, button.height)
     end
@@ -149,25 +155,22 @@ function Menu (game)
         end
     end
 
-    self.init(game)
-
-    -- initializing the button actions:
-
-    -- button 1 restarts the game:
-    self.button1.mousepressed = function (x, y, button)
+    -- button 1: restart the game:
+    self.button1_mousepressed = function (x, y, button)
         self.game.restart()
     end
 
-    -- button 2 toggles between full screen and windowed:
-    self.button2.mousepressed = function (x, y, button)
+    -- button 2: toggle between full screen and windowed:
+    self.button2_mousepressed = function (x, y, button)
         love2d.window_toggle_fullscreen()
     end
 
-    -- button 3 load the next theme:
-    self.button3.mousepressed = function (x, y, button)
+    -- button 3: load the next theme:
+    self.button3_mousepressed = function (x, y, button)
         self.game.theme.load_next_theme()
     end
 
+    self.init(game)
     return self
 end
 

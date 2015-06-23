@@ -77,17 +77,17 @@ function Hud (game)
         local top_margin = (screen.tile_size / 10)
 
         -- calculate positions, base x = grid, base y = hud center + margin
-        local font_x = screen.grid_x
-        local font_y = screen.hud_y + (screen.hud_height / 2) + top_margin
+        local base_x = screen.grid_x
+        local base_y = screen.hud_y + (screen.hud_height / 2) + top_margin
 
-        local score_x = font_x
-        local score_y = font_y - self.score_font:getHeight(score_text)
+        local score_x = base_x
+        local score_y = base_y - self.score_font:getHeight(score_text)
 
-        local combo_x = font_x
-        local combo_y = font_y
+        local combo_x = base_x
+        local combo_y = base_y
 
-        local level_x = font_x + (screen.grid_width - self.level_font:getWidth(level_text))
-        local level_y = font_y - (self.score_font:getHeight(level_text) / 2)
+        local level_x = base_x + screen.grid_width - self.level_font:getWidth(level_text)
+        local level_y = base_y - (self.score_font:getHeight(level_text) / 2)
 
         -- draw:
         love2d.draw_text(score_text, score_x, score_y, theme.hud_font, self.score_font)
@@ -110,10 +110,6 @@ function Hud (game)
     -- update logic:
     self.update = function (dt)
         self.update_score(dt)
-    end
-
-    -- handle input:
-    self.mousepressed = function (x, y, button)
     end
 
     self.init(game)
