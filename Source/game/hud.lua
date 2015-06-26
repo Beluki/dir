@@ -4,6 +4,7 @@
 
 
 require 'lib/love2d'
+require 'game/util'
 
 
 -- The hud displays information about the current game
@@ -59,14 +60,14 @@ function Hud (game)
         end
 
         -- text that we will display:
-        local score_text = self.score
+        local score_text = separate_thousands(self.score)
         local combo_text = state.combo .. "x"
         local level_text = "level " .. state.level
         local rank_text = state.rank
 
         -- append the current combo score based on the multiplier:
         if state.combo_score > 0 then
-            combo_text =  combo_text .. " +" .. state.combo_score
+            combo_text =  combo_text .. " +" .. separate_thousands(state.combo_score)
         end
 
         -- top margin for each text:

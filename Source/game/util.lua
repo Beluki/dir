@@ -24,3 +24,20 @@ function shuffle (array)
     end
 end
 
+-- Convert a number to a string, using a thousands separator:
+function separate_thousands (number)
+    local s = tostring(number)
+
+    if s:len() > 3 then
+        s = s:reverse()
+        s = s:gsub("(%d%d%d)", "%1.")
+        s = s:reverse()
+
+        if s:sub(1, 1) == "." then
+            s = s:sub(2)
+        end
+    end
+
+    return s
+end
+
