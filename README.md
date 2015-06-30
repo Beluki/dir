@@ -30,12 +30,20 @@ And a feature list:
 
 ## Installation
 
-On Linux and Mac systems, install Love2D 0.9.2+, clone this repository and run:
+For Linux and Mac systems:
 
-    $ love Source
+  * Install Love2D 0.9.2 using your package manager.
 
-On Windows, get the latest zip from the [Releases][] tab. It includes both x86
-and x86-64 executables.
+  * Download the latest `dir.love` release from the [Releases][] tab.
+
+  * Run `love dir.love`.
+
+On Windows:
+
+  * Download the latest binaries from the [Releases][] tab. There are both
+    x86 and x86-64 binaries available.
+
+  * Extract and run `dir.exe`.
 
 System requirements are very low. It should run without problems on any computer
 with OpenGL support. Even the integrated graphics card on my laptop (Intel 965
@@ -67,6 +75,18 @@ a score as high as possible and, eventually, to reach the grandmaster rank.
 
 As with all puzzle games, the game may seem very hard at first. Don't worry,
 you'll likely develop new strategies as you play.
+
+## Keyboard shortcuts
+
+Although dir is mouse-centric, there are some keyboard shortcuts available:
+
+  Key      | Use
+:--------: | :----------------------------------------------------------
+   ESC     | Close the game.
+    R      | Restart.
+    F      | Toggle between full screen and windowed.
+ 1, 2, 3   | Change the color theme to the first, second and third one.
+    T      | Cycle to the next color theme.
 
 ## Status
 

@@ -1,6 +1,13 @@
 
 CHANGELOG
 
+* 2015/06/30:
+
+    - Accept keypad 1, 2, 3 to change the theme.
+
+    - The Love2D distribution in builds is now vanilla (no Resource Hacker).
+      The icon is changed from the stub windows exe programmatically.
+
 * 2015/06/26:
 
     - First complete version.
