@@ -9,7 +9,7 @@
 
 # Example:
 
-# ./build.sh "dir 2015.06.29"
+# ./release.sh "dir 2015.06.29"
 
 
 LOVE_WIN32_URL="https://bitbucket.org/rude/love/downloads/love-0.9.2-win32.zip"
