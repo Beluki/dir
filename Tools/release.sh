@@ -66,7 +66,6 @@ echo "Compressing..."
 
 echo "Cleaning..."
 
-rm dir.love
 rm -rf "$TARGET (win32)" "$TARGET (win64)"
 rm love-win32.zip love-win64.zip
 rm dir_win32.res dir_win64.res
