@@ -41,7 +41,7 @@ For Linux and Mac systems:
 On Windows:
 
   * Download the latest binaries from the [Releases][] tab. There are both
-    x86 and x86-64 binaries available.
+    x86 and x86-64 binaries available. Those include everything needed to play.
 
   * Extract and run `dir.exe`.
 
@@ -90,12 +90,10 @@ Although dir is mouse-centric, there are some keyboard shortcuts available:
 
 ## Status
 
-dir is basically finished. It has no known bugs and all the important
-stuff is implemented.
+This program is finished!
 
-I may still add small things here or there (e.g. more keyboard shortcuts
-or a game over animation), but the gameplay and the scoring/ranking systems
-won't change.
+dir is feature-complete and has no known bugs. Unless issues are reported
+I plan no further development on it other than maintenance.
 
 ## License
 
