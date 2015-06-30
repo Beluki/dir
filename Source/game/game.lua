@@ -75,13 +75,13 @@ function Game ()
         if key == 'escape' then
             love2d.event_quit()
 
-        elseif key == '1' then
+        elseif key == '1' or key == 'kp1' then
             self.theme.load_theme(1)
 
-        elseif key == '2' then
+        elseif key == '2' or key == 'kp2' then
             self.theme.load_theme(2)
 
-        elseif key == '3' then
+        elseif key == '3' or key == 'kp3' then
             self.theme.load_theme(3)
 
         elseif key =='f' then
