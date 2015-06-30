@@ -24,7 +24,7 @@ echo "Creating .love file..."
 
 pushd .
 cd ../Source
-7z a ../Windows/dir.love -r . -tzip
+7z a ../Tools/dir.love -r . -tzip
 popd
 
 
