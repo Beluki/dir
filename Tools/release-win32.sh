@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Builds the .7z distribution that I upload to Github for the MinGW32 stub.
 # It's meant to be run from MSYS2.
