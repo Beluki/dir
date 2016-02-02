@@ -9,7 +9,7 @@ hardcore audiences, without relying on quick reflexes or time limits.
 
 Here are two screenshots:
 
-![Screenshot1](https://raw.github.com/Beluki/dir/master/Screenshot/Screenshot1.png)
+![Screenshot1](Screenshot/Screenshot1.png)
 
 And a feature list:
 
@@ -100,7 +100,7 @@ I plan no further development on it other than maintenance.
 Like all my hobby projects, this is Free Software. See the [Documentation][]
 folder for more information. No warranty though.
 
-[Documentation]: https://github.com/Beluki/dir/tree/master/Documentation
+[Documentation]: Documentation
 [Releases]: https://github.com/Beluki/dir/releases
 
 [Love2D]: https://love2d.org

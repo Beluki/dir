@@ -1,6 +1,12 @@
 
 CHANGELOG
 
+* 2016/02/02:
+
+    - Stub working with latest MinGW 5.3.0.
+
+    - A port to Love2D 0.10.0 could happen to support Android later.
+
 * 2015/06/30:
 
     - Accept keypad 1, 2, 3 to change the theme.
