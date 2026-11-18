@@ -11,7 +11,7 @@ CHANGELOG
 
     - Accept keypad 1, 2, 3 to change the theme.
 
-    - The Love2D distribution in builds is now vanilla (no Resource Hacker).
+    - The Love2D distribution in builds is now vanilla (no Resource Hacker or [Resource Cracker](https://www.pelock.com/products/resource-cracker)).
       The icon is changed from the stub windows exe programmatically.
 
 * 2015/06/26:
